@@ -47,7 +47,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
     }
     if (!containsText(comment, PROPOSED_ANSWER_KEYWORD)) {
       core.debug('No answer proposed on comment, no action needed');
-      return;
+      // return;
     }
 
     core.debug('Proposed answer text found. Checking which action to take');
