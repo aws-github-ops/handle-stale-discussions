@@ -23,12 +23,12 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
       const discussionId = discussion?.node?.id ? discussion?.node?.id : "";
       if (!discussionId) {
         core.warning(`Can not proceed checking discussion ${discussionId}, discussionId is null!`);
-        return;
+        continue;
       }
       else if (discussion?.node?.locked) {
         core.info(`Discussion ${discussionId} is locked, closing it as resolved`);
         githubClient.closeDiscussionAsResolved(discussionId);
-        return;
+        continue;
       }
       if (!discussion?.node?.answer?.bodyText) {
         await processComments(discussion!, githubClient);
@@ -42,12 +42,12 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
   for (const comment of discussion?.node?.comments?.edges!) {
     if (!comment?.node?.bodyText || !comment.node.id) {
       core.warning('Comment body or id is null, skipping comment');
-      return;
+      continue;
     }
     core.debug(comment.node?.bodyText);
     if (!containsText(comment, PROPOSED_ANSWER_KEYWORD)) {
       core.debug('No answer proposed on comment, no action needed');
-      return;
+      continue;
     }
 
     if (containsNegativeReaction(comment)) {
