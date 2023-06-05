@@ -44,6 +44,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
       core.warning('Comment body or id is null, skipping comment');
       return;
     }
+    core.debug(comment.node?.bodyText);
     if (!containsText(comment, PROPOSED_ANSWER_KEYWORD)) {
       core.debug('No answer proposed on comment, no action needed');
       return;
