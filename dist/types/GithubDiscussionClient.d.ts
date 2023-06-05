@@ -7,9 +7,9 @@ export declare class GithubDiscussionClient {
     private owner;
     private repo;
     private attentionLabelId;
-    constructor(owner: string, repo: string);
+    constructor();
     get githubClient(): ApolloClient<NormalizedCacheObject>;
-    initializeAttentionLabelId(): Promise<string>;
+    private initializeAttentionLabelId;
     getTotalDiscussionCount(categoryID: string): Promise<number | undefined>;
     getDiscussionsMetaData(categoryID: string): Promise<DiscussionConnection>;
     getAnswerableDiscussionCategoryIDs(): Promise<any>;
