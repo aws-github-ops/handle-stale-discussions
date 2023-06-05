@@ -45,16 +45,16 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
       return;
     }
     if (!containsText(comment, PROPOSED_ANSWER_KEYWORD)) {
-      core.debug("No answer proposed on comment, no action needed ");
+      core.debug('No answer proposed on comment, no action needed');
       return;
     }
 
     if (containsNegativeReaction(comment)) {
-      core.info("Negative reaction received. Adding attention label to receive further attention from a repository maintainer");
+      core.info(`Negative reaction received. Adding attention label to discussion ${discussionId} to receive further attention from a repository maintainer`);
       await githubClient.addAttentionLabelToDiscussion(discussionId);
     } 
     else if (containsPositiveReaction(comment)) {
-      core.info("Positive reaction received. Marking discussion as answered, and editing answer to remove proposed answer keyword");
+      core.info(`Positive reaction received. Marking discussion ${discussionId} as answered, and editing answer to remove proposed answer keyword`);
       await closeAndMarkAsAnswered(comment, discussionId, githubClient);
     }
     // TODO: Implement hasInstructionsReply()
