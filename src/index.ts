@@ -41,13 +41,14 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
   const discussionId = discussion?.node?.id!;
   discussion.node?.comments.edges?.forEach(async (comment) => {
     core.debug(`Processing comment ${comment?.node?.id} in discussion ${discussionId}...`);
+    core.debug(comment?.node?.bodyText!);
     if (!comment?.node?.bodyText || !comment.node.id) {
       core.warning('Comment body or id is null, skipping comment');
       return;
     }
     if (!containsText(comment, PROPOSED_ANSWER_KEYWORD)) {
       core.debug('No answer proposed on comment, no action needed');
-      // return;
+      return;
     }
 
     core.debug('Proposed answer text found. Checking which action to take');
