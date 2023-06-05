@@ -39,7 +39,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
 
 export async function processComments(discussion: octokit.DiscussionEdge, githubClient: GithubDiscussionClient) {
   const discussionId = discussion?.node?.id!;
-  discussion.node?.comments.edges?.forEach(async (comment) => {
+  for (const comment of discussion?.node?.comments?.edges!) {
     core.debug(`Processing comment ${comment?.node?.id} in discussion ${discussionId}...`);
     core.debug(comment?.node?.bodyText!);
     if (!comment?.node?.bodyText || !comment.node.id) {
@@ -74,7 +74,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
       core.info(`Discussion author has not responded in a while, closing discussion ${discussionId} with a comment`);
       await closeDiscussionForStaleness(discussionId, githubClient);
     }
-  });
+  }
 }
 
 async function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
