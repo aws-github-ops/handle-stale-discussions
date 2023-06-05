@@ -41445,7 +41445,7 @@ export const GetDiscussionData = gql`
             id
             bodyText
           }
-          comments(last: 1) {
+          comments(last: 10) {
             edges {
               node {
                 id

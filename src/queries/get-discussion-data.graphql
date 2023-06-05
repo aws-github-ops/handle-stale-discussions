@@ -13,7 +13,7 @@ query GetDiscussionData($owner: String!, $name: String!,$categoryID: ID!, $count
             id
             bodyText
           }
-          comments(last: 1) {
+          comments(last: 10) {
             edges {
               node {
                 id

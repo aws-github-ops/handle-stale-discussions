@@ -19,7 +19,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
   const discussionCategoryIDs: string[] = await githubClient.getAnswerableDiscussionCategoryIDs();
   for (const discussionCategoryID of discussionCategoryIDs) {
     const discussions = await githubClient.getDiscussionsMetaData(discussionCategoryID);
-    discussions.edges?.map(async discussion => {
+    for (const discussion of discussions.edges!) {
       const discussionId = discussion?.node?.id ? discussion?.node?.id : "";
       if (!discussionId) {
         core.warning(`Can not proceed checking discussion ${discussionId}, discussionId is null!`);
@@ -33,16 +33,13 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
       if (!discussion?.node?.answer?.bodyText) {
         await processComments(discussion!, githubClient);
       }
-    });
+    }
   }
 }
 
 export async function processComments(discussion: octokit.DiscussionEdge, githubClient: GithubDiscussionClient) {
   const discussionId = discussion?.node?.id!;
-  core.debug(discussion?.node?.comments?.edges!.toString()!);
   for (const comment of discussion?.node?.comments?.edges!) {
-    core.debug(`Processing comment ${comment?.node?.id} in discussion ${discussionId}...`);
-    core.debug(comment?.node?.bodyText!);
     if (!comment?.node?.bodyText || !comment.node.id) {
       core.warning('Comment body or id is null, skipping comment');
       return;
@@ -52,7 +49,6 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
       return;
     }
 
-    core.debug('Proposed answer text found. Checking which action to take');
     if (containsNegativeReaction(comment)) {
       core.info(`Negative reaction received. Adding attention label to discussion ${discussionId} to receive further attention from a repository maintainer`);
       await githubClient.addAttentionLabelToDiscussion(discussionId);
