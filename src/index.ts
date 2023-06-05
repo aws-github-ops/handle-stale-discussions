@@ -39,6 +39,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
 
 export async function processComments(discussion: octokit.DiscussionEdge, githubClient: GithubDiscussionClient) {
   const discussionId = discussion?.node?.id!;
+  core.debug(discussion?.node?.comments?.edges!.toString()!);
   for (const comment of discussion?.node?.comments?.edges!) {
     core.debug(`Processing comment ${comment?.node?.id} in discussion ${discussionId}...`);
     core.debug(comment?.node?.bodyText!);
