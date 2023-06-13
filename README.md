@@ -4,7 +4,10 @@ This Github action checks the **answerable discussions** in your repository for 
 
 ## Steps to enable this action in your repository
 
-1. Generate GitHub token with repo scope access in [Settings](https://github.com/settings/tokens) if you do not already have one.
+1. The GITHUB_TOKEN is genrated by github during workflow execution. Please change this in Repository settings and allow Github action the required permission to run and make changes.
+
+![Action Settings in repo](images/repoTokenSettings.png)
+
 2. Make sure your repo contains a label named `attention`, or a different label that can be provided as input.
 3. Include this action in a GitHub workflow. Just below you can find an example workflow file you can put in `.github/workflows` that 
 will run this action every 4 hours.
