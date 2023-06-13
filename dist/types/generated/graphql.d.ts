@@ -38777,6 +38777,9 @@ export declare const CloseDiscussionAsResolved: import("graphql").DocumentNode;
 export declare const MarkDiscussionCommentAsAnswer: import("graphql").DocumentNode;
 export declare const UpdateDiscussionComment: import("graphql").DocumentNode;
 export declare const GetAnswerableDiscussionId: import("graphql").DocumentNode;
+export declare const GetCommentMetaData: import("graphql").DocumentNode;
+export declare const GetCommentReactionData: import("graphql").DocumentNode;
+export declare const GetDiscussionCommentCount: import("graphql").DocumentNode;
 export declare const GetDiscussionCount: import("graphql").DocumentNode;
 export declare const GetDiscussionData: import("graphql").DocumentNode;
 export declare const IsDiscussionLocked: import("graphql").DocumentNode;
@@ -38879,6 +38882,103 @@ export type GetAnswerableDiscussionIdQuery = {
         };
     } | null;
 };
+export type GetCommentMetaDataQueryVariables = Exact<{
+    owner: Scalars['String'];
+    name: Scalars['String'];
+    discussionNumber: Scalars['Int'];
+    commentCount: Scalars['Int'];
+}>;
+export type GetCommentMetaDataQuery = {
+    __typename?: 'Query';
+    repository?: {
+        __typename?: 'Repository';
+        discussion?: {
+            __typename?: 'Discussion';
+            id: string;
+            comments: {
+                __typename?: 'DiscussionCommentConnection';
+                edges?: Array<{
+                    __typename?: 'DiscussionCommentEdge';
+                    node?: {
+                        __typename?: 'DiscussionComment';
+                        id: string;
+                        bodyText: string;
+                        updatedAt: any;
+                        replies: {
+                            __typename?: 'DiscussionCommentConnection';
+                            edges?: Array<{
+                                __typename?: 'DiscussionCommentEdge';
+                                node?: {
+                                    __typename?: 'DiscussionComment';
+                                    id: string;
+                                    bodyText: string;
+                                } | null;
+                            } | null> | null;
+                        };
+                        reactions: {
+                            __typename?: 'ReactionConnection';
+                            nodes?: Array<{
+                                __typename?: 'Reaction';
+                                content: ReactionContent;
+                            } | null> | null;
+                        };
+                    } | null;
+                } | null> | null;
+            };
+        } | null;
+    } | null;
+};
+export type GetCommentReactionDataQueryVariables = Exact<{
+    owner: Scalars['String'];
+    name: Scalars['String'];
+    discussionNumber: Scalars['Int'];
+    commentCount: Scalars['Int'];
+    reactionCount: Scalars['Int'];
+}>;
+export type GetCommentReactionDataQuery = {
+    __typename?: 'Query';
+    repository?: {
+        __typename?: 'Repository';
+        discussion?: {
+            __typename?: 'Discussion';
+            comments: {
+                __typename?: 'DiscussionCommentConnection';
+                edges?: Array<{
+                    __typename?: 'DiscussionCommentEdge';
+                    node?: {
+                        __typename?: 'DiscussionComment';
+                        id: string;
+                        reactions: {
+                            __typename?: 'ReactionConnection';
+                            nodes?: Array<{
+                                __typename?: 'Reaction';
+                                content: ReactionContent;
+                            } | null> | null;
+                        };
+                    } | null;
+                } | null> | null;
+            };
+        } | null;
+    } | null;
+};
+export type GetDiscussionCommentCountQueryVariables = Exact<{
+    owner: Scalars['String'];
+    name: Scalars['String'];
+    num: Scalars['Int'];
+}>;
+export type GetDiscussionCommentCountQuery = {
+    __typename?: 'Query';
+    repository?: {
+        __typename?: 'Repository';
+        discussion?: {
+            __typename?: 'Discussion';
+            comments: {
+                __typename?: 'DiscussionCommentConnection';
+                totalCount: number;
+            };
+        } | null;
+    } | null;
+};
 export type GetDiscussionCountQueryVariables = Exact<{
     owner: Scalars['String'];
     name: Scalars['String'];
@@ -38898,7 +38998,7 @@ export type GetDiscussionDataQueryVariables = Exact<{
     owner: Scalars['String'];
     name: Scalars['String'];
     categoryID: Scalars['ID'];
-    count?: InputMaybe<Scalars['Int']>;
+    count: Scalars['Int'];
 }>;
 export type GetDiscussionDataQuery = {
     __typename?: 'Query';
@@ -38913,6 +39013,7 @@ export type GetDiscussionDataQuery = {
                     locked: boolean;
                     id: string;
                     bodyText: string;
+                    number: number;
                     author?: {
                         __typename?: 'Bot';
                         login: string;
@@ -38934,25 +39035,6 @@ export type GetDiscussionDataQuery = {
                         id: string;
                         bodyText: string;
                     } | null;
-                    comments: {
-                        __typename?: 'DiscussionCommentConnection';
-                        edges?: Array<{
-                            __typename?: 'DiscussionCommentEdge';
-                            node?: {
-                                __typename?: 'DiscussionComment';
-                                id: string;
-                                bodyText: string;
-                                updatedAt: any;
-                                reactions: {
-                                    __typename?: 'ReactionConnection';
-                                    nodes?: Array<{
-                                        __typename?: 'Reaction';
-                                        content: ReactionContent;
-                                    } | null> | null;
-                                };
-                            } | null;
-                        } | null> | null;
-                    };
                 } | null;
             } | null> | null;
         };

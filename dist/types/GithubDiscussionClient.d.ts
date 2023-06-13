@@ -1,13 +1,13 @@
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client/core";
 import { DiscussionConnection } from "@octokit/graphql-schema";
-import { MarkDiscussionCommentAsAnswerMutation, AddLabelToDiscussionMutation, UpdateDiscussionCommentMutation } from "./generated/graphql";
+import { MarkDiscussionCommentAsAnswerMutation, AddLabelToDiscussionMutation, UpdateDiscussionCommentMutation, DiscussionCommentConnection } from "./generated/graphql";
 export declare class GithubDiscussionClient {
     private _githubClient;
     private githubToken;
     private owner;
     private repo;
     private attentionLabelId;
-    constructor();
+    constructor(owner: string, repo: string);
     get githubClient(): ApolloClient<NormalizedCacheObject>;
     private initializeAttentionLabelId;
     getTotalDiscussionCount(categoryID: string): Promise<number | undefined>;
@@ -19,4 +19,7 @@ export declare class GithubDiscussionClient {
     markDiscussionCommentAsAnswer(commentId: string): Promise<import("@apollo/client/core").FetchResult<MarkDiscussionCommentAsAnswerMutation>>;
     addAttentionLabelToDiscussion(discussionId: string): Promise<import("@apollo/client/core").FetchResult<AddLabelToDiscussionMutation>>;
     updateDiscussionComment(commentId: string, body: string): Promise<import("@apollo/client/core").FetchResult<UpdateDiscussionCommentMutation>>;
+    getDiscussionCommentCount(owner: string, name: string, discussionNum: number): Promise<any>;
+    getCommentReactionData(owner: string, name: string, discussionNum: number, commentCount: number, reactionCount: number): Promise<any>;
+    getCommentsMetaData(discussionNum: number, commentCount: number): Promise<DiscussionCommentConnection>;
 }
