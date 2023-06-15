@@ -9,11 +9,11 @@ export function daysSinceComment(comment: DiscussionCommentEdge): number {
   return diffInDays;
 }
 
-export function isPositiveReaction(content: octokit.ReactionContent): boolean {
+export function isPositiveReaction(content: ReactionContent): boolean {
   return ((content === ReactionContent.ThumbsUp) || (content === ReactionContent.Heart) || (content === ReactionContent.Hooray) || (content === ReactionContent.Laugh) || (content === ReactionContent.Rocket));
 }
 
-export function isNegativeReaction(content: octokit.ReactionContent): boolean {
+export function isNegativeReaction(content: ReactionContent): boolean {
   return ((content === ReactionContent.ThumbsDown) || (content === ReactionContent.Confused));
 }
 

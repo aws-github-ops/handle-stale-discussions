@@ -9,14 +9,11 @@ const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: 
 const PROPOSED_ANSWER_KEYWORD = '@bot proposed-answer';
 const CLOSE_FOR_STALENESS_RESPONSE_TEXT = 'Closing the discussion for staleness';
 const INSTRUCTIONS_TEXT = 'Please give a positive reaction (such as a thumbs up) to the proposed answer if it helped. '
-    + 'If not, leave a negative reaction (such as a thumbs down) and leave a comment explaining why it did not help.'
-    + '7 days to respond, etc';
-const OWNER = github.context.repo.owner;
-const REPO = github.context.repo.repo;
+                        + 'If not, leave a negative reaction (such as a thumbs down) and leave a comment explaining why it did not help.'
+                        + '7 days to respond, etc';
 
 async function main() {
-
-    const githubClient = new GithubDiscussionClient(OWNER, REPO);
+    const githubClient = new GithubDiscussionClient();
     await processDiscussions(githubClient);
 }
 
@@ -25,12 +22,11 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
 
     for (const discussionCategoryID of discussionCategoryIDList) {
         const discussions = await githubClient.getDiscussionsMetaData(discussionCategoryID);
-
-        discussions.edges?.map(async discussion => {
-            core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytetxt : ${discussion?.node?.bodyText}`);
+        for(const discussion of discussions.edges!) {
+            core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
-            if (discussionId === "" || discussionNum == 0) {
+            if (discussionId === "" || discussionNum === 0) {
                 core.warning(`Can not proceed checking discussion, discussionId is null!`);
                 return;
             }
@@ -48,19 +44,19 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
                 console.log("Processing discussion :: " + JSON.stringify(discussion));
                 await processComments(discussion!, githubClient);
             }
-        });
+        };
     }
 }
 
 export async function processComments(discussion: octokit.DiscussionEdge, githubClient: GithubDiscussionClient) {
     const discussionId = discussion.node?.id ? discussion.node?.id : "";
     const discussionNum = discussion.node?.number ? discussion.node?.number : 0;
-    const commentCount = await githubClient.getDiscussionCommentCount(OWNER, REPO, discussionNum);
+    const commentCount = await githubClient.getDiscussionCommentCount(discussionNum);
     const comments = await githubClient.getCommentsMetaData(discussionNum, commentCount);
     const commentInstructionTextFlag = hasInstructionsText(comments, INSTRUCTIONS_TEXT);
    
-    comments.edges?.map(async comment => {
-        core.info(`Processing comment ${comment?.node?.id} with bodytext : ${comment?.node?.bodyText}`);
+    for(const comment of comments.edges!) {
+        core.debug(`Processing comment ${comment?.node?.id} with bodytext : ${comment?.node?.bodyText}`);
         if (!comment?.node?.bodyText || !comment.node.id) {
             core.warning('Comment body or id is null, skipping comment');
             return;  
@@ -92,11 +88,10 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
                 await closeDiscussionForStaleness(discussionId, githubClient);
             }
         }
-    });
+    };
 }
 
 async function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
-    core.info("Discussion author has not responded in a while, so closing the discussion with a comment");
     await githubClient.addCommentToDiscussion(discussionId, CLOSE_FOR_STALENESS_RESPONSE_TEXT);
     await githubClient.closeDiscussionAsOutdated(discussionId);
 }

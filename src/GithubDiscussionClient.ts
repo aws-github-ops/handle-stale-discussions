@@ -3,7 +3,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import fetch from 'cross-fetch';
 import { DiscussionConnection } from "@octokit/graphql-schema";
-import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, GetDiscussionCommentCountQuery, GetDiscussionCommentCount, GetCommentReactionDataQuery, GetCommentReactionData, DiscussionCommentConnection, GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables, GetCommentMetaData, GetLabelIdQueryVariables, CloseDiscussionAsResolvedMutationVariables, CloseDiscussionAsOutdatedMutationVariables, AddDiscussionCommentMutationVariables, MarkDiscussionCommentAsAnswerMutationVariables, AddLabelToDiscussionMutationVariables, UpdateDiscussionCommentMutationVariables, GetDiscussionCommentCountQueryVariables, GetCommentReactionDataQueryVariables } from "./generated/graphql";
+import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, GetDiscussionCommentCountQuery, GetDiscussionCommentCount, DiscussionCommentConnection, GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables, GetCommentMetaData, CloseDiscussionAsResolvedMutationVariables, CloseDiscussionAsOutdatedMutationVariables, AddDiscussionCommentMutationVariables, MarkDiscussionCommentAsAnswerMutationVariables, AddLabelToDiscussionMutationVariables, UpdateDiscussionCommentMutationVariables, GetDiscussionCommentCountQueryVariables } from "./generated/graphql";
 
 export class GithubDiscussionClient {
   private _githubClient: ApolloClient<NormalizedCacheObject>;
@@ -12,15 +12,14 @@ export class GithubDiscussionClient {
   private repo: string;
   private attentionLabelId: string;
 
-  constructor(owner: string, repo: string) {
-    this.owner = owner;
-    this.repo = repo;
+  constructor() {
     const githubToken = core.getInput('github-token', { required: false }) || process.env.GITHUB_TOKEN;
     if (!githubToken) {
       throw new Error('You must provide a GitHub token as an input to this action, or as a `GITHUB_TOKEN` env variable. See the README for more info.');
-    } else {
-      this.githubToken = githubToken;
     }
+    this.owner = github.context.repo.owner;
+    this.repo = github.context.repo.repo;
+    this.githubToken = githubToken;
     this.initializeAttentionLabelId();
   }
 
@@ -74,14 +73,12 @@ export class GithubDiscussionClient {
       throw new Error(`Error in reading discussions count for discussions category ${categoryID}`);
     }
 
-    core.debug(`Total discussion count : ${resultCountObject.data.repository?.discussions.totalCount}`);
+    core.debug(`Total discussion count for Category ID : ${categoryID} : ${resultCountObject.data.repository?.discussions.totalCount}`);
     return resultCountObject.data.repository?.discussions.totalCount;
   }
 
   public async getDiscussionsMetaData(categoryID: string): Promise<DiscussionConnection> {
     const discussionsCount = await this.getTotalDiscussionCount(categoryID);
-    core.info("Total discussion count : " + discussionsCount);
-
     const result = await this.githubClient.query<GetDiscussionDataQuery, GetDiscussionDataQueryVariables>({
       query: GetDiscussionData,
       variables: {
@@ -217,7 +214,7 @@ export class GithubDiscussionClient {
     return result;
   }
 
-  public async getDiscussionCommentCount(owner: string, name: string, discussionNum: number): Promise<any> {
+  public async getDiscussionCommentCount(discussionNum: number): Promise<any> {
     const result = await this.githubClient.query<GetDiscussionCommentCountQuery, GetDiscussionCommentCountQueryVariables>({
       query: GetDiscussionCommentCount,
       variables: {
@@ -232,30 +229,6 @@ export class GithubDiscussionClient {
 
     return result.data.repository?.discussion?.comments.totalCount;
   }
-
-  public async getCommentReactionData(owner: string, name: string, discussionNum: number, commentCount: number, reactionCount: number): Promise<any> {
-    if (reactionCount == 0) {
-      core.info(`No reactions posted on the comments under discussion ${discussionNum} !`);
-      return;
-    }
-
-    const result = await this.githubClient.query<GetCommentReactionDataQuery, GetCommentReactionDataQueryVariables>({
-      query: GetCommentReactionData,
-      variables: {
-        owner: this.owner,
-        name: this.repo,
-        discussionNumber: discussionNum,
-        commentCount: commentCount,
-        reactionCount: reactionCount
-      },
-    });
-
-    if (result.error)
-      throw new Error(`Error in retrieving reaction on comment under discussion ${discussionNum} !`);
-
-    return result.data.repository?.discussion?.comments.edges;
-  }
-
 
   public async getCommentsMetaData(discussionNum: number, commentCount: number): Promise<DiscussionCommentConnection> {
     const result = await this.githubClient.query<GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables>({
