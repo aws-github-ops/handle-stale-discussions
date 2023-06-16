@@ -77,6 +77,40 @@ export class GithubDiscussionClient {
     return resultCountObject.data.repository?.discussions.totalCount;
   }
 
+  public async getDiscussionCommentCount(discussionNum: number): Promise<any> {
+    const result = await this.githubClient.query<GetDiscussionCommentCountQuery, GetDiscussionCommentCountQueryVariables>({
+      query: GetDiscussionCommentCount,
+      variables: {
+        owner: this.owner,
+        name: this.repo,
+        num: discussionNum
+      },
+    });
+
+    if (result.error)
+      throw new Error(`Error in retrieving comment count related to discussion ${discussionNum}`);
+
+    return result.data.repository?.discussion?.comments.totalCount;
+  }
+
+  public async getCommentsMetaData(discussionNum: number, commentCount: number): Promise<DiscussionCommentConnection> {
+    const result = await this.githubClient.query<GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables>({
+      query: GetCommentMetaData,
+      variables: {
+        owner: this.owner,
+        name: this.repo,
+        discussionNumber: discussionNum,
+        commentCount: commentCount,
+      },
+    })
+
+    if (result.error) { 
+      throw new Error(`Error in retrieving comment metadata for the discussion ${discussionNum}`);
+    }
+
+    return result.data.repository?.discussion?.comments as DiscussionCommentConnection;
+  }
+
   public async getDiscussionsMetaData(categoryID: string): Promise<DiscussionConnection> {
     const discussionsCount = await this.getTotalDiscussionCount(categoryID);
     const result = await this.githubClient.query<GetDiscussionDataQuery, GetDiscussionDataQueryVariables>({
@@ -135,6 +169,16 @@ export class GithubDiscussionClient {
       throw new Error(`Error while attempting to close discussion ${discussionId} as resolved`);
     }
 
+    //write back the updated data to cache in case of mutation
+    const updateData = { repository: { discussion: { id: discussionId } } };
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsResolved,
+      variables: {
+        discussionId
+      },
+      data: updateData,
+    });
+
     return result.data?.closeDiscussion?.discussion?.id;
   }
 
@@ -149,6 +193,15 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Error in closing outdated discussion ${discussionId}`);
     }
+
+    const updateData = { repository: { discussion: { id: discussionId } } };
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsOutdated,
+      variables: {
+        discussionId
+      },
+      data: updateData,
+    });
 
     return result.data?.closeDiscussion?.discussion?.id;
   }
@@ -165,6 +218,18 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Mutation adding comment to discussion ${discussionId} failed with error`);
     }
+
+    //writing back the result to cache
+    const updateData = result.data?.addDiscussionComment?.comment?.id;
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsOutdated,
+      variables: {
+        discussionId,
+        body,
+      },
+      data: updateData,
+    });
+
   }
 
   public async markDiscussionCommentAsAnswer(commentId: string) {
@@ -178,6 +243,16 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Mutation marking comment ${commentId} as answer failed with error`);
     }
+
+    //writing back the result to cache
+    const updateData = result.data?.markDiscussionCommentAsAnswer?.clientMutationId;
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsOutdated,
+      variables: {
+        commentId,
+      },
+      data: updateData,
+    });
 
     return result;
   }
@@ -195,6 +270,17 @@ export class GithubDiscussionClient {
       throw new Error(`Mutation adding label to discussion ${discussionId} failed with error`);
     }
 
+    //writing back the result to cache
+    const updateData = result.data?.addLabelsToLabelable?.clientMutationId;
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsOutdated,
+      variables: {
+        labelableId: discussionId,
+        labelIds: this.attentionLabelId,
+      },
+      data: updateData,
+    });
+
     return result;
   }
 
@@ -211,39 +297,18 @@ export class GithubDiscussionClient {
       throw new Error(`Error in updating discussion comment ${commentId}`);
     }
 
-    return result;
-  }
-
-  public async getDiscussionCommentCount(discussionNum: number): Promise<any> {
-    const result = await this.githubClient.query<GetDiscussionCommentCountQuery, GetDiscussionCommentCountQueryVariables>({
-      query: GetDiscussionCommentCount,
+    //writing back the result to cache
+    const updateData = result.data?.updateDiscussionComment?.comment?.id;
+    this.githubClient.writeQuery({
+      query: CloseDiscussionAsOutdated,
       variables: {
-        owner: this.owner,
-        name: this.repo,
-        num: discussionNum
+        commentId,
+        body
       },
+      data: updateData,
     });
 
-    if (result.error)
-      throw new Error(`Error in retrieving comment count related to discussion ${discussionNum}`);
-
-    return result.data.repository?.discussion?.comments.totalCount;
-  }
-
-  public async getCommentsMetaData(discussionNum: number, commentCount: number): Promise<DiscussionCommentConnection> {
-    const result = await this.githubClient.query<GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables>({
-      query: GetCommentMetaData,
-      variables: {
-        owner: this.owner,
-        name: this.repo,
-        discussionNumber: discussionNum,
-        commentCount: commentCount,
-      },
-    })
-
-    if (result.error) { throw new Error(`Error in retrieving comment metadata for the discussion ${discussionNum}`); }
-
-    return result.data.repository?.discussion?.comments as DiscussionCommentConnection;
+    return result;
   }
 
 }

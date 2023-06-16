@@ -41451,26 +41451,6 @@ export const GetCommentMetaData = gql`
   }
 }
     `;
-export const GetCommentReactionData = gql`
-    query GetCommentReactionData($owner: String!, $name: String!, $discussionNumber: Int!, $commentCount: Int!, $reactionCount: Int!) {
-  repository(owner: $owner, name: $name) {
-    discussion(number: $discussionNumber) {
-      comments(last: $commentCount) {
-        edges {
-          node {
-            id
-            reactions(last: $reactionCount) {
-              nodes {
-                content
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-    `;
 export const GetDiscussionCommentCount = gql`
     query getDiscussionCommentCount($owner: String!, $name: String!, $num: Int!) {
   repository(owner: $owner, name: $name) {
@@ -41613,17 +41593,6 @@ export type GetCommentMetaDataQueryVariables = Exact<{
 
 
 export type GetCommentMetaDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', id: string, comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, updatedAt: any, replies: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null } | null> | null }, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null };
-
-export type GetCommentReactionDataQueryVariables = Exact<{
-  owner: Scalars['String'];
-  name: Scalars['String'];
-  discussionNumber: Scalars['Int'];
-  commentCount: Scalars['Int'];
-  reactionCount: Scalars['Int'];
-}>;
-
-
-export type GetCommentReactionDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null };
 
 export type GetDiscussionCommentCountQueryVariables = Exact<{
   owner: Scalars['String'];
