@@ -1,4 +1,4 @@
-import { ApolloClient, HttpLink, InMemoryCache, NormalizedCacheObject } from "@apollo/client/core";
+import { ApolloClient, DefaultOptions, HttpLink, InMemoryCache, NormalizedCacheObject } from "@apollo/client/core";
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import fetch from 'cross-fetch';
@@ -25,6 +25,17 @@ export class GithubDiscussionClient {
 
   public get githubClient(): ApolloClient<NormalizedCacheObject> {
     if (!this._githubClient) {
+      const defaultOptions: DefaultOptions = {
+        watchQuery: {
+          fetchPolicy: 'no-cache',
+          errorPolicy: 'ignore',
+        },
+        query: {
+          fetchPolicy: 'no-cache',
+          errorPolicy: 'all',
+        },
+      }
+      
       this._githubClient = new ApolloClient({
         link: new HttpLink({
           uri: "https://api.github.com/graphql",
@@ -34,6 +45,7 @@ export class GithubDiscussionClient {
           fetch
         }),
         cache: new InMemoryCache(),
+        defaultOptions: defaultOptions,
       });
     }
     return this._githubClient;
