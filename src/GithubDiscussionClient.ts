@@ -154,6 +154,17 @@ export class GithubDiscussionClient {
       core.info('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
     }
 
+    //writing back to cache objects
+    const updateData = { repository: { discussionCategories: { edges: answerableCategoryIDs } } };
+    this.githubClient.writeQuery({
+      query: GetAnswerableDiscussionId,
+      variables: {
+        owner: this.owner,
+        name: this.repo
+      },
+      data: updateData,
+    });
+    
     return answerableCategoryIDs;
   }
 
