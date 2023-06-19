@@ -25,21 +25,6 @@ export class GithubDiscussionClient {
 
   public get githubClient(): ApolloClient<NormalizedCacheObject> {
     if (!this._githubClient) {
-      const defaultOptions: DefaultOptions = {
-        watchQuery: {
-          fetchPolicy: 'no-cache',
-          errorPolicy: 'ignore',
-        },
-        query: {
-          fetchPolicy: 'no-cache',
-          errorPolicy: 'all',
-        },
-        mutate: {
-          fetchPolicy: 'no-cache',
-          errorPolicy: 'all',
-        },
-      }
-      
       this._githubClient = new ApolloClient({
         link: new HttpLink({
           uri: "https://api.github.com/graphql",
@@ -62,7 +47,6 @@ export class GithubDiscussionClient {
             }
           }
         }),
-        defaultOptions: defaultOptions,
       });
     }
     return this._githubClient;
