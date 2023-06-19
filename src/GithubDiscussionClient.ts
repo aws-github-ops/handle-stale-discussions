@@ -55,6 +55,18 @@ export class GithubDiscussionClient {
         throw new Error(`Couldn't find label ${attentionLabel} in repository. Please create this label and try again.`);
       }
 
+      //writing back to cache objects
+      const updateData = { repository: { label: { id: result.data.repository?.label?.id } } };
+      this.githubClient.writeQuery({
+        query: GetLabelId,
+        variables: {
+          owner: this.owner,
+          name: this.repo,
+          labelName: attentionLabel
+        },
+        data: updateData,
+      });
+
       this.attentionLabelId = result.data.repository?.label?.id;
     }
   }
@@ -164,7 +176,7 @@ export class GithubDiscussionClient {
       },
       data: updateData,
     });
-    
+
     return answerableCategoryIDs;
   }
 
