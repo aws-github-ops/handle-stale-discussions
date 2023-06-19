@@ -34,6 +34,10 @@ export class GithubDiscussionClient {
           fetchPolicy: 'no-cache',
           errorPolicy: 'all',
         },
+        mutate: {
+          fetchPolicy: 'no-cache',
+          errorPolicy: 'all',
+        },
       }
       
       this._githubClient = new ApolloClient({
