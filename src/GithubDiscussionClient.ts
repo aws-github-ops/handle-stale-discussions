@@ -48,7 +48,20 @@ export class GithubDiscussionClient {
           },
           fetch
         }),
-        cache: new InMemoryCache(),
+        cache: new InMemoryCache({
+          typePolicies: {
+            Query: {
+              fields: {
+                repository: {
+                  keyArgs: false,
+                  merge(existing, incoming) {
+                    return incoming;
+                  }
+                }
+              }
+            }
+          }
+        }),
         defaultOptions: defaultOptions,
       });
     }
