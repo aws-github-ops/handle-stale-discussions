@@ -22,7 +22,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
     for (const discussionCategoryID of discussionCategoryIDList) {
         const discussions = await githubClient.getDiscussionsMetaData(discussionCategoryID);
         for (const discussion of discussions.edges!) {
-            core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
+            //core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
             var flag = discussion?.node?.closed;
