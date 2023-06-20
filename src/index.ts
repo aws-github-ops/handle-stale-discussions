@@ -25,6 +25,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
             core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
+            var flag = discussion?.node?.closed;
             if (discussionId === "" || discussionNum === 0) {
                 core.warning(`Can not proceed checking discussion, discussionId is null!`);
                 return;
