@@ -39,8 +39,8 @@ export class GithubDiscussionClient {
               fields: {
                 repository: {
                   keyArgs: false,
-                  merge(existing, incoming) {
-                    return incoming;
+                  merge(existing = [], incoming = []) {
+                    return [...existing, ...incoming];
                   }
                 }
               }
