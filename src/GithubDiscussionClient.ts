@@ -206,7 +206,7 @@ export class GithubDiscussionClient {
     }
 
     //writing back to cache objects
-    const updateData = { repository: { discussionCategories: { edges: answerableCategoryIDs } } };
+    const updateData = { repository: { discussionCategories: { edges: Array(answerableCategoryIDs) } } };
     this.githubClient.writeQuery({
       query: GetAnswerableDiscussionId,
       variables: {
