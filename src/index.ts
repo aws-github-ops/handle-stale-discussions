@@ -53,7 +53,8 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
     const comments = await githubClient.getCommentsMetaData(discussionNum, commentCount);
 
     for (const comment of comments.edges!) {
-        core.debug(`Processing comment ${comment?.node?.id} with bodytext : ${comment?.node?.bodyText}`);
+        const commentId = comment?.node?.id;
+        core.debug(`Processing comment ${commentId} with bodytext : ${comment?.node?.bodyText}`);
         if (!comment?.node?.bodyText || !comment.node.id) {
             core.warning('Comment body or id is null, skipping comment!');
             return;
@@ -72,8 +73,8 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
                 await closeAndMarkAsAnswered(comment, discussionId, githubClient);
             }
             else if (!hasReplies(comment)) {
-                core.info(`Discussion ${discussionId} has no reply. Adding instructions reply - ${comment.node.id}`);
-                await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, comment.node.id);
+                core.info(`Discussion ${discussionId} has no reply. Adding instructions reply - ${commentId}`);
+                await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
             }
             else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
                 core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
