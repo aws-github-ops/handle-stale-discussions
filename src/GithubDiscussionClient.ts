@@ -41,7 +41,7 @@ export class GithubDiscussionClient {
                 repository: {
                   keyArgs: false,
                   merge(existing = [], incoming: any[]) {
-                    return mergeDeepArray([...existing, ...incoming]);
+                    return ([...incoming]);
                   }
                 }
               }
