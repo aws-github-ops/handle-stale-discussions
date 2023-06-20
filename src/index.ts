@@ -25,9 +25,9 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
             //core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
-            var flag = discussion?.node?.closed;
+            /*var flag = discussion?.node?.closed;
             console.log(`Discussion ${discussionId} is closed? ${flag}`);
-            console.log(`Discussion ${discussionId} is locked? ${discussion?.node?.locked}`);
+            console.log(`Discussion ${discussionId} is locked? ${discussion?.node?.locked}`);*/
             if (discussionId === "" || discussionNum === 0) {
                 core.warning(`Can not proceed checking discussion, discussionId is null!`);
                 return;
@@ -91,6 +91,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
             else if (exceedsDaysUntilStale(comment!, DAYS_UNTIL_STALE)) {
                 core.info(`Discussion author has not responded in a while, closing discussion ${discussionId} with a comment`);
                 await closeDiscussionForStaleness(discussionId, githubClient);
+                await lockDiscussion(discussionId, githubClient);
             }
         }
     };
@@ -99,6 +100,10 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
 async function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
     await githubClient.addCommentToDiscussion(discussionId, CLOSE_FOR_STALENESS_RESPONSE_TEXT);
     await githubClient.closeDiscussionAsOutdated(discussionId);
+}
+
+async function lockDiscussion(discussionId: string, githubClient: GithubDiscussionClient) {
+    await githubClient.lockDiscussion(discussionId);
 }
 
 async function closeAndMarkAsAnswered(comment: DiscussionCommentEdge, discussionId: string, githubClient: GithubDiscussionClient) {

@@ -1,0 +1,8 @@
+mutation lockDiscussion($discussionId: ID!){
+  lockLockable(input: {lockableId: $discussionId }) 
+  {
+    lockedRecord {
+      activeLockReason
+    }
+  }
+}

@@ -41401,6 +41401,15 @@ export const CloseDiscussionAsResolved = gql`
   }
 }
     `;
+export const LockDiscussion = gql`
+    mutation lockDiscussion($discussionId: ID!) {
+  lockLockable(input: {lockableId: $discussionId}) {
+    lockedRecord {
+      activeLockReason
+    }
+  }
+}
+    `;
 export const MarkDiscussionCommentAsAnswer = gql`
     mutation markDiscussionCommentAsAnswer($commentId: ID!) {
   markDiscussionCommentAsAnswer(input: {id: $commentId}) {
@@ -41584,6 +41593,13 @@ export type CloseDiscussionAsResolvedMutationVariables = Exact<{
 
 
 export type CloseDiscussionAsResolvedMutation = { __typename?: 'Mutation', closeDiscussion?: { __typename?: 'CloseDiscussionPayload', discussion?: { __typename?: 'Discussion', id: string } | null } | null };
+
+export type LockDiscussionMutationVariables = Exact<{
+  discussionId: Scalars['ID'];
+}>;
+
+
+export type LockDiscussionMutation = { __typename?: 'Mutation', lockLockable?: { __typename?: 'LockLockablePayload', lockedRecord?: { __typename?: 'Discussion', activeLockReason?: LockReason | null } | { __typename?: 'Issue', activeLockReason?: LockReason | null } | { __typename?: 'PullRequest', activeLockReason?: LockReason | null } | null } | null };
 
 export type MarkDiscussionCommentAsAnswerMutationVariables = Exact<{
   commentId: Scalars['ID'];
