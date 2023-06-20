@@ -39,10 +39,7 @@ export class GithubDiscussionClient {
             Query: {
               fields: {
                 repository: {
-                  keyArgs: false,
-                  merge(existing = [], incoming: any[]) {
-                    return ([...incoming]);
-                  }
+                 merge: false
                 }
               }
             }
