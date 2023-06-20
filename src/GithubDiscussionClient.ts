@@ -40,7 +40,7 @@ export class GithubDiscussionClient {
               fields: {
                 repository: {
                  merge: false
-                }
+                },
               }
             }
           }
