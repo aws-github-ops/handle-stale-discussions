@@ -41,6 +41,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
             }
             else if (discussion?.node?.closed){
                 core.info(`This discussions has been closed, so no action needed.`);
+                return;
             }
             else {
                 console.log("Processing discussion :: " + JSON.stringify(discussion));
