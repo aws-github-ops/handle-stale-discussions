@@ -26,8 +26,8 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
             var flag = discussion?.node?.closed;
-            core.info(`Discussion ${discussionId} is closed? ${flag}`);
-            core.info(`Discussion ${discussionId} is locked? ${discussion?.node?.locked}`);
+            console.log(`Discussion ${discussionId} is closed? ${flag}`);
+            console.log(`Discussion ${discussionId} is locked? ${discussion?.node?.locked}`);
             if (discussionId === "" || discussionNum === 0) {
                 core.warning(`Can not proceed checking discussion, discussionId is null!`);
                 return;
