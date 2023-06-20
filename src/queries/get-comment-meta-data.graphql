@@ -13,10 +13,13 @@ query GetCommentMetaData($owner: String!, $name: String!, $discussionNumber: Int
                 node {
                   id
                   bodyText
+                  replies{
+                    totalCount
+                  }
                 }
               }
             }
-            reactions(last:10) {
+            reactions(last:100) {
                   nodes
                   {
                     content

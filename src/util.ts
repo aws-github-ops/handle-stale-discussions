@@ -47,9 +47,18 @@ export function hasReplies(comment: DiscussionCommentEdge): boolean{
   })!;
 }
 
-
-export function hasInstructionsText(comments: DiscussionCommentConnection, INSTRUCTIONS_TEXT: string): boolean {
-    return comments.edges?.some(comment => {
+export function getInstructionCommentRepliesCount(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): number {
+    const instructionComment = comments.node?.replies.edges?.find(comment => {
+        return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
+    }); 
+    if (instructionComment?.node?.replies?.totalCount) {
+        return instructionComment?.node?.replies?.totalCount;
+    }
+    return 0;
+  }
+export function hasInstructionsText(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean  {
+    return comments.node?.replies.edges?.some(comment => {
         return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
     })!;
 }
+

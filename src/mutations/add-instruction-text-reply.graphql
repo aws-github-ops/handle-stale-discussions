@@ -1,0 +1,9 @@
+mutation AddInstructionTextReply($body: String!, $discussionId: ID!, $replyToId: ID!){
+  addDiscussionComment(
+    input: {body: $body, discussionId: $discussionId, replyToId: $replyToId}
+  ) {
+    comment {
+      id
+    }
+  }
+}

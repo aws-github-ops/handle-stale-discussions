@@ -41365,6 +41365,17 @@ export const AddDiscussionComment = gql`
   }
 }
     `;
+export const AddInstructionTextReply = gql`
+    mutation AddInstructionTextReply($body: String!, $discussionId: ID!, $replyToId: ID!) {
+  addDiscussionComment(
+    input: {body: $body, discussionId: $discussionId, replyToId: $replyToId}
+  ) {
+    comment {
+      id
+    }
+  }
+}
+    `;
 export const AddLabelToDiscussion = gql`
     mutation AddLabelToDiscussion($labelableId: ID!, $labelIds: [ID!]!) {
   addLabelsToLabelable(input: {labelableId: $labelableId, labelIds: $labelIds}) {
@@ -41436,10 +41447,13 @@ export const GetCommentMetaData = gql`
                 node {
                   id
                   bodyText
+                  replies {
+                    totalCount
+                  }
                 }
               }
             }
-            reactions(last: 10) {
+            reactions(last: 100) {
               nodes {
                 content
               }
@@ -41539,6 +41553,15 @@ export type AddDiscussionCommentMutationVariables = Exact<{
 
 export type AddDiscussionCommentMutation = { __typename?: 'Mutation', addDiscussionComment?: { __typename?: 'AddDiscussionCommentPayload', comment?: { __typename?: 'DiscussionComment', id: string } | null } | null };
 
+export type AddInstructionTextReplyMutationVariables = Exact<{
+  body: Scalars['String'];
+  discussionId: Scalars['ID'];
+  replyToId: Scalars['ID'];
+}>;
+
+
+export type AddInstructionTextReplyMutation = { __typename?: 'Mutation', addDiscussionComment?: { __typename?: 'AddDiscussionCommentPayload', comment?: { __typename?: 'DiscussionComment', id: string } | null } | null };
+
 export type AddLabelToDiscussionMutationVariables = Exact<{
   labelableId: Scalars['ID'];
   labelIds: Array<Scalars['ID']> | Scalars['ID'];
@@ -41592,7 +41615,7 @@ export type GetCommentMetaDataQueryVariables = Exact<{
 }>;
 
 
-export type GetCommentMetaDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', id: string, comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, updatedAt: any, replies: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null } | null> | null }, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null };
+export type GetCommentMetaDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', id: string, comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, updatedAt: any, replies: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, replies: { __typename?: 'DiscussionCommentConnection', totalCount: number } } | null } | null> | null }, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null };
 
 export type GetDiscussionCommentCountQueryVariables = Exact<{
   owner: Scalars['String'];

@@ -1,16 +1,15 @@
 import * as octokit from '@octokit/graphql-schema';
-import * as github from '@actions/github';
 import * as core from '@actions/core';
 import { GithubDiscussionClient } from "./GithubDiscussionClient";
-import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasInstructionsText, exceedsDaysUntilStale,  hasReaction, hasReplies } from './util';
+import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasInstructionsText, exceedsDaysUntilStale, hasReaction, hasReplies, getInstructionCommentRepliesCount } from './util';
 import { DiscussionCommentEdge } from './generated/graphql';
 
 const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: false })) || 7;
 const PROPOSED_ANSWER_KEYWORD = '@bot proposed-answer';
 const CLOSE_FOR_STALENESS_RESPONSE_TEXT = 'Closing the discussion for staleness';
 const INSTRUCTIONS_TEXT = 'Please give a positive reaction (such as a thumbs up) to the proposed answer if it helped. '
-                        + 'If not, leave a negative reaction (such as a thumbs down) and leave a comment explaining why it did not help.'
-                        + '7 days to respond, etc';
+    + 'If not, leave a negative reaction (such as a thumbs down) and leave a comment explaining why it did not help.'
+    + '7 days to respond, etc';
 
 async function main() {
     const githubClient = new GithubDiscussionClient();
@@ -22,7 +21,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
 
     for (const discussionCategoryID of discussionCategoryIDList) {
         const discussions = await githubClient.getDiscussionsMetaData(discussionCategoryID);
-        for(const discussion of discussions.edges!) {
+        for (const discussion of discussions.edges!) {
             core.info(`Processing discussion ${discussion?.node?.id} with title : ${discussion?.node?.title} and bodytext : ${discussion?.node?.bodyText}`);
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
@@ -40,6 +39,9 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
                 githubClient.closeDiscussionAsResolved(discussionId);
 
             }
+            else if (discussion?.node?.closed){
+                core.info(`This discussions has been closed, so no action needed.`);
+            }
             else {
                 console.log("Processing discussion :: " + JSON.stringify(discussion));
                 await processComments(discussion!, githubClient);
@@ -53,17 +55,15 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
     const discussionNum = discussion.node?.number ? discussion.node?.number : 0;
     const commentCount = await githubClient.getDiscussionCommentCount(discussionNum);
     const comments = await githubClient.getCommentsMetaData(discussionNum, commentCount);
-    const commentInstructionTextFlag = hasInstructionsText(comments, INSTRUCTIONS_TEXT);
-   
-    for(const comment of comments.edges!) {
+
+    for (const comment of comments.edges!) {
         core.debug(`Processing comment ${comment?.node?.id} with bodytext : ${comment?.node?.bodyText}`);
         if (!comment?.node?.bodyText || !comment.node.id) {
-            core.warning('Comment body or id is null, skipping comment');
-            return;  
+            core.warning('Comment body or id is null, skipping comment!');
+            return;
         }
-
         if (!containsKeyword(comment!, PROPOSED_ANSWER_KEYWORD)) {
-            core.debug('No answer proposed on comment, no action needed');
+            core.debug('No answer proposed on comment, no action needed!');
             return;
         }
         else {
@@ -75,14 +75,19 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
                 core.info(`Positive reaction received. Marking discussion ${discussionId} as answered, and editing answer to remove proposed answer keyword`);
                 await closeAndMarkAsAnswered(comment, discussionId, githubClient);
             }
-            else if (hasReplies(comment)) {
-                core.info(`Discussion ${discussionId} has replies. Adding attention label`);
+            else if (!hasReplies(comment)) {
+                core.info(`Discussion ${discussionId} has no reply. Adding instructions reply`);
+                await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, comment.node.id);
+            }
+            else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
+                core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
                 await githubClient.addAttentionLabelToDiscussion(discussionId);
             }
-            else if (!hasReplies(comment) && !(commentInstructionTextFlag)) {
-                core.info(`Discussion ${discussionId} has no reply. Adding instructions reply`);
-                await githubClient.addCommentToDiscussion(discussionId, INSTRUCTIONS_TEXT);
-            } 
+            else if (hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
+                core.info(`Discussion ${discussionId} has an instructions text. Checking for further replies`);
+                if (getInstructionCommentRepliesCount(comment,INSTRUCTIONS_TEXT) > 0)
+                    await githubClient.addAttentionLabelToDiscussion(discussionId);
+                }
             else if (exceedsDaysUntilStale(comment!, DAYS_UNTIL_STALE)) {
                 core.info(`Discussion author has not responded in a while, closing discussion ${discussionId} with a comment`);
                 await closeDiscussionForStaleness(discussionId, githubClient);

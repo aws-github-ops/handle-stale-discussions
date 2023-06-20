@@ -1,13 +1,19 @@
 name: HandleStaleDiscussions
 on:
   schedule:
-    - cron: '*/30 * * * *'
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    - cron: '*/10 * * * *'
+  discussion:
+    types:
+      - created
+      - edited
+      - category_changed
+      - locked
+      - answered
+  discussion_comment:
+    types:
+      - created
+      - edited
+
 
 jobs:
   run-action:
