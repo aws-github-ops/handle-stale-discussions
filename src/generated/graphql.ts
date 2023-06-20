@@ -41495,6 +41495,7 @@ export const GetDiscussionData = gql`
           id
           bodyText
           number
+          closed
           author {
             login
           }
@@ -41643,7 +41644,7 @@ export type GetDiscussionDataQueryVariables = Exact<{
 }>;
 
 
-export type GetDiscussionDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussions: { __typename?: 'DiscussionConnection', edges?: Array<{ __typename?: 'DiscussionEdge', node?: { __typename?: 'Discussion', locked: boolean, id: string, bodyText: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, answer?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null } | null } | null> | null } } | null };
+export type GetDiscussionDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussions: { __typename?: 'DiscussionConnection', edges?: Array<{ __typename?: 'DiscussionEdge', node?: { __typename?: 'Discussion', locked: boolean, id: string, bodyText: string, number: number, closed: boolean, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, answer?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null } | null } | null> | null } } | null };
 
 export type IsDiscussionLockedQueryVariables = Exact<{
   owner: Scalars['String'];

@@ -7,6 +7,7 @@ query GetDiscussionData($owner: String!, $name: String!,$categoryID: ID!, $count
           id
           bodyText
           number
+          closed
           author{
             login
           }
