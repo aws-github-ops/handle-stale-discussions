@@ -280,6 +280,7 @@ export class GithubDiscussionClient {
   }
 
   public async addInstructionTextReply(body: string, discussionId: string, replyToId: string) {
+    core.debug("inside ad intcrcn reply");
     const result = await this.githubClient.mutate<AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables>({
       mutation: AddInstructionTextReply,
       variables: {
@@ -294,7 +295,7 @@ export class GithubDiscussionClient {
     }
 
     //writing back the result to cache
-    const updateData = result.data?.addDiscussionComment?.comment?.id;
+    /*const updateData = result.data?.addDiscussionComment?.comment?.id;
     this.githubClient.writeQuery({
       query: AddInstructionTextReply,
       variables: {
@@ -303,7 +304,7 @@ export class GithubDiscussionClient {
         replyToId
       },
       data: updateData,
-    });
+    });*/
   }
 
   public async markDiscussionCommentAsAnswer(commentId: string) {

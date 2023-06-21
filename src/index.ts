@@ -73,7 +73,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
                 await closeAndMarkAsAnswered(comment, discussionId, githubClient);
             }
             else if (!hasReplies(comment)) {
-                core.info(`Discussion ${discussionId} has no reply. Adding instructions reply - ${commentId}`);
+                core.info(`Discussion ${discussionId} and ${commentId} has no reply. Adding instructions reply - `);
                 await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
             }
             else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
