@@ -12,8 +12,6 @@ on:
   discussion_comment:
     types:
       - created
-      - edited
-
 
 jobs:
   run-action:
@@ -40,4 +38,4 @@ jobs:
         uses: ./
         env:
           GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main

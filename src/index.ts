@@ -36,7 +36,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
             else if (discussion?.node?.answer != null) {
                 core.info(`This discussions has been answered, so closing it as resolved.`);
                 githubClient.closeDiscussionAsResolved(discussionId);
-
+                return;
             }
             else {
                 console.log("Processing discussion :: " + JSON.stringify(discussion));
@@ -73,7 +73,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
                 await closeAndMarkAsAnswered(comment, discussionId, githubClient);
             }
             else if (!hasReplies(comment)) {
-                core.info(`since thsi has no comment,Adding instructions reply to comment - ${commentId} `);
+                core.info(`since this has no comment,Adding instructions reply to comment - ${commentId}  in discussion - ${discussionId} `);
                 await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
             }
             else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
