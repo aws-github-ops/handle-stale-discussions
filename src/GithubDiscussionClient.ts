@@ -66,45 +66,8 @@ export class GithubDiscussionClient {
         throw new Error(`Couldn't find label ${attentionLabel} in repository. Please create this label and try again.`);
       }
 
-      //writing back to cache objects
-      const updateData = { repository: { label: { id: result.data.repository?.label?.id } } };
-      this.githubClient.writeQuery({
-        query: GetLabelId,
-        variables: {
-          owner: this.owner,
-          name: this.repo,
-          labelName: attentionLabel
-        },
-        data: updateData,
-      });
-
       this.attentionLabelId = result.data.repository?.label?.id;
     }
-  }
-
-  public async lockDiscussion(discussionId: string): Promise<boolean> {
-    const result = await this.githubClient.mutate<LockDiscussionMutation, LockDiscussionMutationVariables>({
-      mutation: LockDiscussion,
-      variables: {
-        discussionId
-      }
-    });
-
-    if (result.errors) {
-      throw new Error(`Error while attempting to lock discussion ${discussionId}`);
-    }
-
-    //write back the updated data to cache in case of mutation
-    const updateData = { repository: { discussion: { id: discussionId } } };
-    this.githubClient.writeQuery({
-      query: LockDiscussion,
-      variables: {
-        discussionId
-      },
-      data: updateData,
-    });
-
-    return true;
   }
 
   public async getTotalDiscussionCount(categoryID: string): Promise<number> {
@@ -202,17 +165,6 @@ export class GithubDiscussionClient {
       core.info('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
     }
 
-    //writing back to cache objects
-    const updateData = { repository: { discussionCategories: { edges: Array(answerableCategoryIDs) } } };
-    this.githubClient.writeQuery({
-      query: GetAnswerableDiscussionId,
-      variables: {
-        owner: this.owner,
-        name: this.repo
-      },
-      data: updateData,
-    });
-
     return answerableCategoryIDs;
   }
 
@@ -228,16 +180,6 @@ export class GithubDiscussionClient {
       throw new Error(`Error while attempting to close discussion ${discussionId} as resolved`);
     }
 
-    //write back the updated data to cache in case of mutation
-    const updateData = { repository: { discussion: { id: discussionId } } };
-    this.githubClient.writeQuery({
-      query: CloseDiscussionAsResolved,
-      variables: {
-        discussionId
-      },
-      data: updateData,
-    });
-
     return result.data?.closeDiscussion?.discussion?.id;
   }
 
@@ -252,15 +194,6 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Error in closing outdated discussion ${discussionId}`);
     }
-
-    const updateData = { repository: { discussion: { id: discussionId } } };
-    this.githubClient.writeQuery({
-      query: CloseDiscussionAsOutdated,
-      variables: {
-        discussionId
-      },
-      data: updateData,
-    });
 
     return result.data?.closeDiscussion?.discussion?.id;
   }
@@ -294,17 +227,6 @@ export class GithubDiscussionClient {
       throw new Error(`Mutation adding Instruction text to discussion ${discussionId} failed with error`);
     }
 
-    //writing back the result to cache
-    /*const updateData = result.data?.addDiscussionComment?.comment?.id;
-    this.githubClient.writeQuery({
-      query: AddInstructionTextReply,
-      variables: {
-        body,
-        discussionId,
-        replyToId
-      },
-      data: updateData,
-    });*/
   }
 
   public async markDiscussionCommentAsAnswer(commentId: string) {
@@ -318,16 +240,6 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Mutation marking comment ${commentId} as answer failed with error`);
     }
-
-    //writing back the result to cache
-    const updateData = result.data?.markDiscussionCommentAsAnswer?.clientMutationId;
-    this.githubClient.writeQuery({
-      query: CloseDiscussionAsOutdated,
-      variables: {
-        commentId,
-      },
-      data: updateData,
-    });
 
     return result;
   }
@@ -345,17 +257,6 @@ export class GithubDiscussionClient {
       throw new Error(`Mutation adding label to discussion ${discussionId} failed with error`);
     }
 
-    //writing back the result to cache
-    const updateData = result.data?.addLabelsToLabelable?.clientMutationId;
-    this.githubClient.writeQuery({
-      query: CloseDiscussionAsOutdated,
-      variables: {
-        labelableId: discussionId,
-        labelIds: this.attentionLabelId,
-      },
-      data: updateData,
-    });
-
     return result;
   }
 
@@ -371,17 +272,6 @@ export class GithubDiscussionClient {
     if (result.errors) {
       throw new Error(`Error in updating discussion comment ${commentId}`);
     }
-
-    //writing back the result to cache
-    const updateData = result.data?.updateDiscussionComment?.comment?.id;
-    this.githubClient.writeQuery({
-      query: CloseDiscussionAsOutdated,
-      variables: {
-        commentId,
-        body
-      },
-      data: updateData,
-    });
 
     return result;
   }

@@ -1,7 +1,7 @@
 import * as octokit from '@octokit/graphql-schema';
 import * as core from '@actions/core';
 import { GithubDiscussionClient } from "./GithubDiscussionClient";
-import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasInstructionsText, exceedsDaysUntilStale, hasReaction, hasReplies, getInstructionCommentRepliesCount } from './util';
+import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasInstructionsText, exceedsDaysUntilStale, hasReplies, getInstructionCommentRepliesCount } from './util';
 import { DiscussionCommentEdge } from './generated/graphql';
 
 const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: false })) || 7;
@@ -24,6 +24,7 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
         for (const discussion of discussions.edges!) {
             var discussionId = discussion?.node?.id ? discussion?.node?.id : "";
             var discussionNum = discussion?.node?.number ? discussion.node.number : 0;
+            core.info(`Processing discussionId: ${discussionId} with number: ${discussionNum} and bodyText: ${discussion?.node?.bodyText}`);
             if (discussionId === "" || discussionNum === 0) {
                 core.warning(`Can not proceed checking discussion, discussionId is null!`);
                 return;
@@ -38,8 +39,11 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
                 githubClient.closeDiscussionAsResolved(discussionId);
                 return;
             }
+            else if (discussion?.node?.closed) {
+                core.info(`This discussions has been closed, so no action needed.`);
+                return;
+            }
             else {
-                console.log("Processing discussion :: " + JSON.stringify(discussion));
                 await processComments(discussion!, githubClient);
             }
         };
@@ -52,55 +56,55 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
     const commentCount = await githubClient.getDiscussionCommentCount(discussionNum);
     const comments = await githubClient.getCommentsMetaData(discussionNum, commentCount);
 
-    for (const comment of comments.edges!) {
-        const commentId = comment?.node?.id;
-        core.debug(`Processing comment ${commentId} with bodytext : ${comment?.node?.bodyText}`);
-        if (!comment?.node?.bodyText || !comment.node.id) {
-            core.warning('Comment body or id is null, skipping comment!');
-            return;
-        }
-        if (!containsKeyword(comment!, PROPOSED_ANSWER_KEYWORD)) {
-            core.debug('No answer proposed on comment, no action needed!');
-            return;
-        }
-        else {
-            if (containsNegativeReaction(comment)) {
-                core.info(`Negative reaction received. Adding attention label to discussion ${discussionId} to receive further attention from a repository maintainer`);
-                await githubClient.addAttentionLabelToDiscussion(discussionId);
+    if (commentCount != 0) {
+        for (const comment of comments.edges!) {
+            const commentId = comment?.node?.id;
+            core.debug(`Processing comment ${commentId} with bodytext : ${comment?.node?.bodyText}`);
+            if (!comment?.node?.bodyText || !comment.node.id) {
+                core.warning('Comment body or id is null, skipping comment!');
+                return;
             }
-            else if (containsPositiveReaction(comment)) {
-                core.info(`Positive reaction received. Marking discussion ${discussionId} as answered, and editing answer to remove proposed answer keyword`);
-                await closeAndMarkAsAnswered(comment, discussionId, githubClient);
+            if (!containsKeyword(comment!, PROPOSED_ANSWER_KEYWORD)) {
+                core.debug('No answer proposed on comment, no action needed!');
+                return;
             }
-            else if (!hasReplies(comment)) {
-                core.info(`since this has no comment,Adding instructions reply to comment - ${commentId}  in discussion - ${discussionId} `);
-                await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
-            }
-            else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
-                core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
-                await githubClient.addAttentionLabelToDiscussion(discussionId);
-            }
-            else if (hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
-                core.info(`Discussion ${discussionId} has an instructions text. Checking for further replies`);
-                if (getInstructionCommentRepliesCount(comment,INSTRUCTIONS_TEXT) > 0)
+            else {
+                if (containsNegativeReaction(comment)) {
+                    core.info(`Negative reaction received. Adding attention label to discussion ${discussionId} to receive further attention from a repository maintainer`);
                     await githubClient.addAttentionLabelToDiscussion(discussionId);
                 }
-            else if (exceedsDaysUntilStale(comment!, DAYS_UNTIL_STALE)) {
-                core.info(`Discussion author has not responded in a while, closing discussion ${discussionId} with a comment`);
-                await closeDiscussionForStaleness(discussionId, githubClient);
-                await lockDiscussion(discussionId, githubClient);
+                else if (containsPositiveReaction(comment)) {
+                    core.info(`Positive reaction received. Marking discussion ${discussionId} as answered, and editing answer to remove proposed answer keyword`);
+                    await closeAndMarkAsAnswered(comment, discussionId, githubClient);
+                }
+                else if (!hasReplies(comment)) {
+                    core.info(`since this has no comment,Adding instructions reply to comment - ${commentId}  in discussion - ${discussionId} `);
+                    await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
+                }
+                else if (hasReplies(comment) && !hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
+                    core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
+                    await githubClient.addAttentionLabelToDiscussion(discussionId);
+                }
+                else if (hasInstructionsText(comment, INSTRUCTIONS_TEXT)) {
+                    core.info(`Discussion ${discussionId} has an instructions text. Checking for further replies`);
+                    if (getInstructionCommentRepliesCount(comment,INSTRUCTIONS_TEXT) > 0)
+                        await githubClient.addAttentionLabelToDiscussion(discussionId);
+                    }
+                else if (exceedsDaysUntilStale(comment!, DAYS_UNTIL_STALE)) {
+                    core.info(`Discussion author has not responded in a while, closing discussion ${discussionId} with a comment`);
+                    await closeDiscussionForStaleness(discussionId, githubClient);
+                }
             }
-        }
-    };
+        };
+    }
+    else {
+        core.info(`No comments found for discussion ${discussionId}, No action needed!`);
+    }
 }
 
 async function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
     await githubClient.addCommentToDiscussion(discussionId, CLOSE_FOR_STALENESS_RESPONSE_TEXT);
     await githubClient.closeDiscussionAsOutdated(discussionId);
-}
-
-async function lockDiscussion(discussionId: string, githubClient: GithubDiscussionClient) {
-    await githubClient.lockDiscussion(discussionId);
 }
 
 async function closeAndMarkAsAnswered(comment: DiscussionCommentEdge, discussionId: string, githubClient: GithubDiscussionClient) {

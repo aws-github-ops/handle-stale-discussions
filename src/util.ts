@@ -61,4 +61,3 @@ export function hasInstructionsText(comments: DiscussionCommentEdge, INSTRUCTION
         return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
     })!;
 }
-
