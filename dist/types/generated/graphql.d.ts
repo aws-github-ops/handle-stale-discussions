@@ -38771,9 +38771,11 @@ export type DirectiveResolvers<ContextType = any> = {
     requiredCapabilities?: RequiredCapabilitiesDirectiveResolver<any, any, ContextType>;
 };
 export declare const AddDiscussionComment: import("graphql").DocumentNode;
+export declare const AddInstructionTextReply: import("graphql").DocumentNode;
 export declare const AddLabelToDiscussion: import("graphql").DocumentNode;
 export declare const CloseDiscussionAsOutdated: import("graphql").DocumentNode;
 export declare const CloseDiscussionAsResolved: import("graphql").DocumentNode;
+export declare const LockDiscussion: import("graphql").DocumentNode;
 export declare const MarkDiscussionCommentAsAnswer: import("graphql").DocumentNode;
 export declare const UpdateDiscussionComment: import("graphql").DocumentNode;
 export declare const GetAnswerableDiscussionId: import("graphql").DocumentNode;
@@ -38791,6 +38793,21 @@ export type AddDiscussionCommentMutationVariables = Exact<{
     body: Scalars['String'];
 }>;
 export type AddDiscussionCommentMutation = {
+    __typename?: 'Mutation';
+    addDiscussionComment?: {
+        __typename?: 'AddDiscussionCommentPayload';
+        comment?: {
+            __typename?: 'DiscussionComment';
+            id: string;
+        } | null;
+    } | null;
+};
+export type AddInstructionTextReplyMutationVariables = Exact<{
+    body: Scalars['String'];
+    discussionId: Scalars['ID'];
+    replyToId: Scalars['ID'];
+}>;
+export type AddInstructionTextReplyMutation = {
     __typename?: 'Mutation';
     addDiscussionComment?: {
         __typename?: 'AddDiscussionCommentPayload';
@@ -38834,6 +38851,25 @@ export type CloseDiscussionAsResolvedMutation = {
         discussion?: {
             __typename?: 'Discussion';
             id: string;
+        } | null;
+    } | null;
+};
+export type LockDiscussionMutationVariables = Exact<{
+    discussionId: Scalars['ID'];
+}>;
+export type LockDiscussionMutation = {
+    __typename?: 'Mutation';
+    lockLockable?: {
+        __typename?: 'LockLockablePayload';
+        lockedRecord?: {
+            __typename?: 'Discussion';
+            activeLockReason?: LockReason | null;
+        } | {
+            __typename?: 'Issue';
+            activeLockReason?: LockReason | null;
+        } | {
+            __typename?: 'PullRequest';
+            activeLockReason?: LockReason | null;
         } | null;
     } | null;
 };
@@ -38912,6 +38948,10 @@ export type GetCommentMetaDataQuery = {
                                     __typename?: 'DiscussionComment';
                                     id: string;
                                     bodyText: string;
+                                    replies: {
+                                        __typename?: 'DiscussionCommentConnection';
+                                        totalCount: number;
+                                    };
                                 } | null;
                             } | null> | null;
                         };
@@ -39014,6 +39054,7 @@ export type GetDiscussionDataQuery = {
                     id: string;
                     bodyText: string;
                     number: number;
+                    closed: boolean;
                     author?: {
                         __typename?: 'Bot';
                         login: string;
