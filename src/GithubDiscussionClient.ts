@@ -208,7 +208,7 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Mutation adding Instruction text to discussion ${discussionId} failed with error`);
+      throw new Error(`Mutation adding comment to discussion ${discussionId} failed with error`);
     }
   }
 
