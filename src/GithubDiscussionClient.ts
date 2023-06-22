@@ -3,8 +3,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import fetch from 'cross-fetch';
 import { DiscussionConnection } from "@octokit/graphql-schema";
-import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, GetDiscussionCommentCountQuery, GetDiscussionCommentCount, DiscussionCommentConnection, GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables, GetCommentMetaData, CloseDiscussionAsResolvedMutationVariables, CloseDiscussionAsOutdatedMutationVariables, AddDiscussionCommentMutationVariables, MarkDiscussionCommentAsAnswerMutationVariables, AddLabelToDiscussionMutationVariables, UpdateDiscussionCommentMutationVariables, GetDiscussionCommentCountQueryVariables, AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables, AddInstructionTextReply, LockDiscussionMutation, LockDiscussionMutationVariables, LockDiscussion } from "./generated/graphql";
-import { mergeDeepArray } from "@apollo/client/utilities";
+import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, GetDiscussionCommentCountQuery, GetDiscussionCommentCount, DiscussionCommentConnection, GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables, GetCommentMetaData, CloseDiscussionAsResolvedMutationVariables, CloseDiscussionAsOutdatedMutationVariables, AddDiscussionCommentMutationVariables, MarkDiscussionCommentAsAnswerMutationVariables, AddLabelToDiscussionMutationVariables, UpdateDiscussionCommentMutationVariables, GetDiscussionCommentCountQueryVariables, AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables, AddInstructionTextReply } from "./generated/graphql";
 
 export class GithubDiscussionClient {
   private _githubClient: ApolloClient<NormalizedCacheObject>;
@@ -21,7 +20,6 @@ export class GithubDiscussionClient {
     this.owner = github.context.repo.owner;
     this.repo = github.context.repo.repo;
     this.githubToken = githubToken;
-    this.initializeAttentionLabelId();
   }
 
   public get githubClient(): ApolloClient<NormalizedCacheObject> {
@@ -39,7 +37,7 @@ export class GithubDiscussionClient {
             Query: {
               fields: {
                 repository: {
-                 merge: false
+                  merge: false
                 },
               }
             }
@@ -50,7 +48,7 @@ export class GithubDiscussionClient {
     return this._githubClient;
   }
 
-  private async initializeAttentionLabelId() {
+  public async initializeAttentionLabelId() {
     if (!this.attentionLabelId) {
       const attentionLabel = core.getInput('attention-label', { required: false }) || 'attention';
       const result = await this.githubClient.query<GetLabelIdQuery>({
@@ -81,10 +79,11 @@ export class GithubDiscussionClient {
     });
 
     if (resultCountObject.error) {
-      throw new Error(`Error in reading discussions count for discussions category ${categoryID}`);
+      core.warning(`Error in reading discussions count for discussions category ${categoryID}: ${resultCountObject.error}`);
+      return 0;
     }
 
-    core.debug(`Total discussion count for Category ID : ${categoryID} : ${resultCountObject.data.repository?.discussions.totalCount}`);
+    core.debug(`Total discussion count for Category ${categoryID}: ${resultCountObject.data.repository?.discussions.totalCount}`);
     return resultCountObject.data.repository?.discussions.totalCount!;
   }
 
@@ -98,8 +97,10 @@ export class GithubDiscussionClient {
       },
     });
 
-    if (result.error)
-      throw new Error(`Error in retrieving comment count related to discussion ${discussionNum}`);
+    if (result.error) {
+      core.warning(`Error retrieving comment count for discussion ${discussionNum}: ${result.error}`);
+      return 0;
+    }
 
     return result.data.repository?.discussion?.comments.totalCount!;
   }
@@ -115,8 +116,9 @@ export class GithubDiscussionClient {
       },
     })
 
-    if (result.error) { 
-      throw new Error(`Error in retrieving comment metadata for the discussion ${discussionNum}`);
+    if (result.error) {
+      core.warning(`Error retrieving comment metadata for discussion ${discussionNum}: ${result.error}`);
+      return {} as DiscussionCommentConnection;
     }
 
     return result.data.repository?.discussion?.comments as DiscussionCommentConnection;
@@ -135,7 +137,8 @@ export class GithubDiscussionClient {
     })
 
     if (result.error) {
-      throw new Error(`Error in retrieving discussions metadata for category ${categoryID}`);
+      core.warning(`Error retrieving discussions metadata for category ${categoryID}: ${result.error}`);
+      return {} as DiscussionConnection;
     }
 
     return result.data.repository?.discussions as DiscussionConnection;
@@ -162,7 +165,7 @@ export class GithubDiscussionClient {
     })
 
     if (!answerableCategoryIDs.length) {
-      core.info('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
+      throw new Error('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
     }
 
     return answerableCategoryIDs;
@@ -177,10 +180,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Error while attempting to close discussion ${discussionId} as resolved`);
+      throw new Error(`Error closing discussion ${discussionId} as resolved: ${result.errors}`);
     }
-
-    return result.data?.closeDiscussion?.discussion?.id;
   }
 
   public async closeDiscussionAsOutdated(discussionId: string) {
@@ -192,10 +193,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Error in closing outdated discussion ${discussionId}`);
+      throw new Error(`Error closing outdated discussion ${discussionId}: ${result.errors}`);
     }
-
-    return result.data?.closeDiscussion?.discussion?.id;
   }
 
   public async addCommentToDiscussion(discussionId: string, body: string) {
@@ -208,12 +207,11 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Mutation adding comment to discussion ${discussionId} failed with error`);
+      throw new Error(`Error adding comment to discussion ${discussionId}: ${result.errors}`);
     }
   }
 
   public async addInstructionTextReply(body: string, discussionId: string, replyToId: string) {
-    core.debug("inside ad intcrcn reply");
     const result = await this.githubClient.mutate<AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables>({
       mutation: AddInstructionTextReply,
       variables: {
@@ -224,9 +222,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Mutation adding Instruction text to discussion ${discussionId} failed with error`);
+      throw new Error(`Error adding Instruction text to discussion ${discussionId}: ${result.errors}`);
     }
-
   }
 
   public async markDiscussionCommentAsAnswer(commentId: string) {
@@ -238,10 +235,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Mutation marking comment ${commentId} as answer failed with error`);
+      throw new Error(`Error marking comment ${commentId} as answer: ${result.errors}`);
     }
-
-    return result;
   }
 
   public async addAttentionLabelToDiscussion(discussionId: string) {
@@ -254,10 +249,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Mutation adding label to discussion ${discussionId} failed with error`);
+      throw new Error(`Error adding label to discussion ${discussionId}: ${result.errors}`);
     }
-
-    return result;
   }
 
   public async updateDiscussionComment(commentId: string, body: string) {
@@ -270,10 +263,8 @@ export class GithubDiscussionClient {
     });
 
     if (result.errors) {
-      throw new Error(`Error in updating discussion comment ${commentId}`);
+      throw new Error(`Error updating discussion comment ${commentId}: ${result.errors}`);
     }
-
-    return result;
   }
 
 }

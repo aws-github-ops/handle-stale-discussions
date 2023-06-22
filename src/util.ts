@@ -1,5 +1,5 @@
 import * as octokit from "@octokit/graphql-schema";
-import {  DiscussionCommentConnection, DiscussionCommentEdge, ReactionContent } from "./generated/graphql";
+import { DiscussionCommentConnection, DiscussionCommentEdge, ReactionContent } from "./generated/graphql";
 
 export function daysSinceComment(comment: DiscussionCommentEdge): number {
   const currentDate = new Date();
@@ -41,23 +41,14 @@ export function exceedsDaysUntilStale(comment: DiscussionCommentEdge, staleTimeD
   return (daysSinceComment(comment) >= staleTimeDays);
 }
 
-export function hasReplies(comment: DiscussionCommentEdge): boolean{
+export function hasReplies(comment: DiscussionCommentEdge): boolean {
   return comment.node?.replies.edges?.some(reply => {
     return (reply?.node?.bodyText.length !== 0);
   })!;
 }
 
-export function getInstructionCommentRepliesCount(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): number {
-    const instructionComment = comments.node?.replies.edges?.find(comment => {
-        return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
-    }); 
-    if (instructionComment?.node?.replies?.totalCount) {
-        return instructionComment?.node?.replies?.totalCount;
-    }
-    return 0;
-  }
-export function hasInstructionsText(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean  {
-    return comments.node?.replies.edges?.some(comment => {
-        return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
-    })!;
+export function hasInstructionsReply(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean {
+  return comments.node?.replies.edges?.some(comment => {
+    return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
+  })!;
 }

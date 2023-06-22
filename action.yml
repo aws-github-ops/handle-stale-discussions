@@ -18,3 +18,17 @@ inputs:
     description: 'Number of days of inactivity before a discussion is considered stale'
     required: false
     default: 7
+  close-locked-discussions:
+    description: 'Close locked discussions'
+    required: false
+    default: true
+  close-answered-discussions:
+    description: 'Close answered discussions'
+    required: false
+    default: true
+  stale-response-text:
+    description: 'Comment to post when marking a discussion as stale'
+    required: false
+  instructions-response-text:
+    description: 'Comment to post when a proposed answer is given'
+    required: false

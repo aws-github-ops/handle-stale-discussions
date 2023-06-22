@@ -8,5 +8,4 @@ export declare function hasReaction(comment: DiscussionCommentEdge): boolean;
 export declare function containsKeyword(comment: DiscussionCommentEdge, text: string): boolean;
 export declare function exceedsDaysUntilStale(comment: DiscussionCommentEdge, staleTimeDays: number): boolean;
 export declare function hasReplies(comment: DiscussionCommentEdge): boolean;
-export declare function getInstructionCommentRepliesCount(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): number;
-export declare function hasInstructionsText(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean;
+export declare function hasInstructionsReply(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean;

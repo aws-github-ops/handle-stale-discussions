@@ -38775,19 +38775,16 @@ export declare const AddInstructionTextReply: import("graphql").DocumentNode;
 export declare const AddLabelToDiscussion: import("graphql").DocumentNode;
 export declare const CloseDiscussionAsOutdated: import("graphql").DocumentNode;
 export declare const CloseDiscussionAsResolved: import("graphql").DocumentNode;
-export declare const LockDiscussion: import("graphql").DocumentNode;
 export declare const MarkDiscussionCommentAsAnswer: import("graphql").DocumentNode;
 export declare const UpdateDiscussionComment: import("graphql").DocumentNode;
 export declare const GetAnswerableDiscussionId: import("graphql").DocumentNode;
 export declare const GetCommentMetaData: import("graphql").DocumentNode;
-export declare const GetCommentReactionData: import("graphql").DocumentNode;
 export declare const GetDiscussionCommentCount: import("graphql").DocumentNode;
 export declare const GetDiscussionCount: import("graphql").DocumentNode;
 export declare const GetDiscussionData: import("graphql").DocumentNode;
 export declare const IsDiscussionLocked: import("graphql").DocumentNode;
 export declare const GetLabelId: import("graphql").DocumentNode;
 export declare const GetRepoId: import("graphql").DocumentNode;
-export declare const WhoAmI: import("graphql").DocumentNode;
 export type AddDiscussionCommentMutationVariables = Exact<{
     discussionId: Scalars['ID'];
     body: Scalars['String'];
@@ -38851,25 +38848,6 @@ export type CloseDiscussionAsResolvedMutation = {
         discussion?: {
             __typename?: 'Discussion';
             id: string;
-        } | null;
-    } | null;
-};
-export type LockDiscussionMutationVariables = Exact<{
-    discussionId: Scalars['ID'];
-}>;
-export type LockDiscussionMutation = {
-    __typename?: 'Mutation';
-    lockLockable?: {
-        __typename?: 'LockLockablePayload';
-        lockedRecord?: {
-            __typename?: 'Discussion';
-            activeLockReason?: LockReason | null;
-        } | {
-            __typename?: 'Issue';
-            activeLockReason?: LockReason | null;
-        } | {
-            __typename?: 'PullRequest';
-            activeLockReason?: LockReason | null;
         } | null;
     } | null;
 };
@@ -38955,39 +38933,6 @@ export type GetCommentMetaDataQuery = {
                                 } | null;
                             } | null> | null;
                         };
-                        reactions: {
-                            __typename?: 'ReactionConnection';
-                            nodes?: Array<{
-                                __typename?: 'Reaction';
-                                content: ReactionContent;
-                            } | null> | null;
-                        };
-                    } | null;
-                } | null> | null;
-            };
-        } | null;
-    } | null;
-};
-export type GetCommentReactionDataQueryVariables = Exact<{
-    owner: Scalars['String'];
-    name: Scalars['String'];
-    discussionNumber: Scalars['Int'];
-    commentCount: Scalars['Int'];
-    reactionCount: Scalars['Int'];
-}>;
-export type GetCommentReactionDataQuery = {
-    __typename?: 'Query';
-    repository?: {
-        __typename?: 'Repository';
-        discussion?: {
-            __typename?: 'Discussion';
-            comments: {
-                __typename?: 'DiscussionCommentConnection';
-                edges?: Array<{
-                    __typename?: 'DiscussionCommentEdge';
-                    node?: {
-                        __typename?: 'DiscussionComment';
-                        id: string;
                         reactions: {
                             __typename?: 'ReactionConnection';
                             nodes?: Array<{
@@ -39129,14 +39074,4 @@ export type GetRepoIdQuery = {
         __typename?: 'Repository';
         id: string;
     } | null;
-};
-export type WhoAmIQueryVariables = Exact<{
-    [key: string]: never;
-}>;
-export type WhoAmIQuery = {
-    __typename?: 'Query';
-    viewer: {
-        __typename?: 'User';
-        login: string;
-    };
 };

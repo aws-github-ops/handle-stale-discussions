@@ -8,7 +8,7 @@ query GetCommentMetaData($owner: String!, $name: String!, $discussionNumber: Int
             id
             bodyText
             updatedAt
-            replies(last: 1) {
+            replies(last: 2) {
               edges {
                 node {
                   id
@@ -20,11 +20,11 @@ query GetCommentMetaData($owner: String!, $name: String!, $discussionNumber: Int
               }
             }
             reactions(last:100) {
-                  nodes
-                  {
-                    content
-                  }
-                }     
+              nodes
+              {
+                content
+              }
+            }     
           }
         }
       }

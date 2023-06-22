@@ -1,11 +1,11 @@
 {
   "name": "handle-stale-discussions",
   "version": "1.0.0",
-  "description": "* Purpose: OSDS will mark discussion answers as proposed-answer and after N number of days, the bot will go in and automatically mark that answer as the discussion answer.",
+  "description": "GitHub action to help manage discussions in GitHub repositories",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "package": "rm -rf dist && npm run build && ncc build --license THIRD-PARTY -o dist",
+    "package": "graphql-codegen --config codegen.yml && rm -rf dist && npm run build && ncc build --license THIRD-PARTY -o dist",
     "test": "jest",
     "codegen": "graphql-codegen --config codegen.yml"
   },
