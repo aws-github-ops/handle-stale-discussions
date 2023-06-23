@@ -32,3 +32,7 @@ inputs:
   instructions-response-text:
     description: 'Comment to post when a proposed answer is given'
     required: false
+  proposed-answer-keyword:
+    description: 'Keyword to use to indicate a proposed answer'
+    required: false
+    default: '@github-actions proposed-answer'

@@ -1,6 +1,6 @@
 # "Handle Stale Discussions" Action for Github Action
 
-This Github action checks the **answerable discussions** in your repository for an answer with the keyword `@bot proposed-answer`. If a positive reaction (thumbsup, laughing, rocket, heart, hooray) is received on the proposed answer, the discussion is marked as answered and closed as resolved. Otherwise if a negative reaction (thumbsdown, confused) is added or a reply is received, a label (`attention` by default) is added so the discussion can gain attention from the repository maintainers. If there is no reaction or response to a proposed answer after 7 days by default, the discussion is closed as outdated.
+This Github action checks the **answerable discussions** in your repository for an answer with the keyword `@github-actions proposed-answer`. If a positive reaction (thumbsup, laughing, rocket, heart, hooray) is received on the proposed answer, the discussion is marked as answered and closed as resolved. Otherwise if a negative reaction (thumbsdown, confused) is added or a reply is received, a label (`attention` by default) is added so the discussion can gain attention from the repository maintainers. If there is no reaction or response to a proposed answer after 7 days by default, the discussion is closed as outdated.
 
 In addition to handling proposed answers, this action will automatically close any discussions that have a marked answer as resolved, and it will automatically close any locked discussions as outdated. Both of these functionalities can be disabled.
 
@@ -45,6 +45,12 @@ A GitHub token must be provided either as an input or as an environment variable
 ### attention-label
 
 Instead of the default `attention` label, you can use a label of another name if you'd like. Just make sure it's already created in your repository
+
+### proposed-answer-keyword
+
+The keyword this bot uses to detect a comment as a proposed answer
+
+Default: `@github-actions proposed-answer`
 
 ### days-until-stale
 
