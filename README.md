@@ -13,7 +13,7 @@ In addition to handling proposed answers, this action will automatically close a
 2. Make sure your repo contains a label named `attention`, or a different label that can be provided as input.
 3. Make sure you have a discussion category that is answerable. This workflow only works on answerable discussions.
 4. Include this action in a GitHub workflow. Just below you can find an example workflow file you can put in `.github/workflows` that 
-will run this action every 4 hours.
+will run this action every 6 hours.
 
 ### Example workflow file
 

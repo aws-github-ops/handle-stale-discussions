@@ -1,41 +1,15 @@
 name: HandleStaleDiscussions
 on:
   schedule:
-    - cron: '*/10 * * * *'
-  discussion:
-    types:
-      - created
-      - edited
-      - category_changed
-      - locked
-      - answered
-  discussion_comment:
-    types:
-      - created
+    - cron: '0 */4 * * *'
 
 jobs:
-  run-action:
-    name: Run action
+  handle-stale-discussions:
+    name: Handle stale discussions
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16.x
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run package
-
-      - name: Handle stale discussions
-        uses: ./
+      - name: Stale discussions action
+        uses: aws-github-ops/handle-stale-discussions@main
         env:
           GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
-          DEFAULT_BRANCH: main
+
