@@ -21,10 +21,9 @@ const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required
 async function main() {
   const githubClient = new GithubDiscussionClient();
   await githubClient.initializeAttentionLabelId();
-  if (github.context.eventName === 'discussion_comment' && github.context.payload.action === 'created') {
-    if (github.context.payload.comment?.body.indexOf(PROPOSED_ANSWER_KEYWORD) >= 0) {
-      githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, github.context.payload.discussion!.node_id, github.context.payload.comment!.node_id);
-    }
+  if (newCommentContainsKeyword()) {
+    core.info('Comment created with proposed answer keyword. Adding instuctions reply to comment');
+    githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, github.context.payload.discussion!.node_id, github.context.payload.comment!.node_id);
   } else {
     await processDiscussions(githubClient);
   }
@@ -113,6 +112,14 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
   }
   else {
     core.debug(`No comments found for discussion ${discussionId}, No action needed!`);
+  }
+}
+
+function newCommentContainsKeyword() {
+  if (github.context.eventName === 'discussion_comment' && github.context.payload.action === 'created' && github.context.payload.comment?.body.indexOf(PROPOSED_ANSWER_KEYWORD) >= 0) {
+    return true;
+  } else {
+    return false;
   }
 }
 
