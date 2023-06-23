@@ -6,8 +6,8 @@ import { DiscussionCommentEdge } from './generated/graphql';
 
 const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: false })) || 7;
 const PROPOSED_ANSWER_KEYWORD = core.getInput('proposed-answer-keyword', { required: false }) || '@github-actions proposed-answer';
-const CLOSE_LOCKED_DISCUSSIONS = core.getBooleanInput('close-locked-discussions', { required: false }) || true;
-const CLOSE_ANSWERED_DISCUSSIONS = core.getBooleanInput('close-answered-discussions', { required: false }) || true;
+const CLOSE_LOCKED_DISCUSSIONS = core.getBooleanInput('close-locked-discussions', { required: false });
+const CLOSE_ANSWERED_DISCUSSIONS = core.getBooleanInput('close-answered-discussions', { required: false });
 const CLOSE_FOR_STALENESS_RESPONSE_TEXT = core.getInput('stale-response-text', { required: false })
   || 'Closing the discussion for staleness. Please open a new discussion if you have further concerns.';
 const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required: false })
