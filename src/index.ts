@@ -21,8 +21,10 @@ const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required
 async function main() {
   const githubClient = new GithubDiscussionClient();
   await githubClient.initializeAttentionLabelId();
-  if (github.context.eventName === 'discussion_comment') {
-    console.log(github.context.payload)
+  if (github.context.eventName === 'discussion_comment' && github.context.payload.action === 'created') {
+    if (github.context.payload.comment?.body.indexOf(PROPOSED_ANSWER_KEYWORD) >= 0) {
+      githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, github.context.payload.discussion!.node_id, github.context.payload.comment!.node_id);
+    }
   } else {
     await processDiscussions(githubClient);
   }
