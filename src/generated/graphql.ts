@@ -41365,6 +41365,17 @@ export const AddDiscussionComment = gql`
   }
 }
     `;
+export const AddInstructionTextReply = gql`
+    mutation AddInstructionTextReply($body: String!, $discussionId: ID!, $replyToId: ID!) {
+  addDiscussionComment(
+    input: {body: $body, discussionId: $discussionId, replyToId: $replyToId}
+  ) {
+    comment {
+      id
+    }
+  }
+}
+    `;
 export const AddLabelToDiscussion = gql`
     mutation AddLabelToDiscussion($labelableId: ID!, $labelIds: [ID!]!) {
   addLabelsToLabelable(input: {labelableId: $labelableId, labelIds: $labelIds}) {
@@ -41420,6 +41431,51 @@ export const GetAnswerableDiscussionId = gql`
   }
 }
     `;
+export const GetCommentMetaData = gql`
+    query GetCommentMetaData($owner: String!, $name: String!, $discussionNumber: Int!, $commentCount: Int!) {
+  repository(owner: $owner, name: $name) {
+    discussion(number: $discussionNumber) {
+      id
+      comments(last: $commentCount) {
+        edges {
+          node {
+            id
+            bodyText
+            updatedAt
+            replies(last: 2) {
+              edges {
+                node {
+                  id
+                  bodyText
+                  replies {
+                    totalCount
+                  }
+                }
+              }
+            }
+            reactions(last: 100) {
+              nodes {
+                content
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export const GetDiscussionCommentCount = gql`
+    query getDiscussionCommentCount($owner: String!, $name: String!, $num: Int!) {
+  repository(owner: $owner, name: $name) {
+    discussion(number: $num) {
+      comments {
+        totalCount
+      }
+    }
+  }
+}
+    `;
 export const GetDiscussionCount = gql`
     query GetDiscussionCount($owner: String!, $name: String!, $categoryId: ID!) {
   repository(owner: $owner, name: $name) {
@@ -41430,7 +41486,7 @@ export const GetDiscussionCount = gql`
 }
     `;
 export const GetDiscussionData = gql`
-    query GetDiscussionData($owner: String!, $name: String!, $categoryID: ID!, $count: Int) {
+    query GetDiscussionData($owner: String!, $name: String!, $categoryID: ID!, $count: Int!) {
   repository(owner: $owner, name: $name) {
     discussions(categoryId: $categoryID, last: $count) {
       edges {
@@ -41438,26 +41494,14 @@ export const GetDiscussionData = gql`
           locked
           id
           bodyText
+          number
+          closed
           author {
             login
           }
           answer {
             id
             bodyText
-          }
-          comments(last: 10) {
-            edges {
-              node {
-                id
-                bodyText
-                updatedAt
-                reactions(last: 10) {
-                  nodes {
-                    content
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -41495,13 +41539,6 @@ export const GetRepoId = gql`
   }
 }
     `;
-export const WhoAmI = gql`
-    query WhoAmI {
-  viewer {
-    login
-  }
-}
-    `;
 export type AddDiscussionCommentMutationVariables = Exact<{
   discussionId: Scalars['ID'];
   body: Scalars['String'];
@@ -41509,6 +41546,15 @@ export type AddDiscussionCommentMutationVariables = Exact<{
 
 
 export type AddDiscussionCommentMutation = { __typename?: 'Mutation', addDiscussionComment?: { __typename?: 'AddDiscussionCommentPayload', comment?: { __typename?: 'DiscussionComment', id: string } | null } | null };
+
+export type AddInstructionTextReplyMutationVariables = Exact<{
+  body: Scalars['String'];
+  discussionId: Scalars['ID'];
+  replyToId: Scalars['ID'];
+}>;
+
+
+export type AddInstructionTextReplyMutation = { __typename?: 'Mutation', addDiscussionComment?: { __typename?: 'AddDiscussionCommentPayload', comment?: { __typename?: 'DiscussionComment', id: string } | null } | null };
 
 export type AddLabelToDiscussionMutationVariables = Exact<{
   labelableId: Scalars['ID'];
@@ -41555,6 +41601,25 @@ export type GetAnswerableDiscussionIdQueryVariables = Exact<{
 
 export type GetAnswerableDiscussionIdQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussionCategories: { __typename?: 'DiscussionCategoryConnection', edges?: Array<{ __typename?: 'DiscussionCategoryEdge', node?: { __typename?: 'DiscussionCategory', isAnswerable: boolean, id: string } | null } | null> | null } } | null };
 
+export type GetCommentMetaDataQueryVariables = Exact<{
+  owner: Scalars['String'];
+  name: Scalars['String'];
+  discussionNumber: Scalars['Int'];
+  commentCount: Scalars['Int'];
+}>;
+
+
+export type GetCommentMetaDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', id: string, comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, updatedAt: any, replies: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, replies: { __typename?: 'DiscussionCommentConnection', totalCount: number } } | null } | null> | null }, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null };
+
+export type GetDiscussionCommentCountQueryVariables = Exact<{
+  owner: Scalars['String'];
+  name: Scalars['String'];
+  num: Scalars['Int'];
+}>;
+
+
+export type GetDiscussionCommentCountQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussion?: { __typename?: 'Discussion', comments: { __typename?: 'DiscussionCommentConnection', totalCount: number } } | null } | null };
+
 export type GetDiscussionCountQueryVariables = Exact<{
   owner: Scalars['String'];
   name: Scalars['String'];
@@ -41568,11 +41633,11 @@ export type GetDiscussionDataQueryVariables = Exact<{
   owner: Scalars['String'];
   name: Scalars['String'];
   categoryID: Scalars['ID'];
-  count?: InputMaybe<Scalars['Int']>;
+  count: Scalars['Int'];
 }>;
 
 
-export type GetDiscussionDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussions: { __typename?: 'DiscussionConnection', edges?: Array<{ __typename?: 'DiscussionEdge', node?: { __typename?: 'Discussion', locked: boolean, id: string, bodyText: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, answer?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null, comments: { __typename?: 'DiscussionCommentConnection', edges?: Array<{ __typename?: 'DiscussionCommentEdge', node?: { __typename?: 'DiscussionComment', id: string, bodyText: string, updatedAt: any, reactions: { __typename?: 'ReactionConnection', nodes?: Array<{ __typename?: 'Reaction', content: ReactionContent } | null> | null } } | null } | null> | null } } | null } | null> | null } } | null };
+export type GetDiscussionDataQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', discussions: { __typename?: 'DiscussionConnection', edges?: Array<{ __typename?: 'DiscussionEdge', node?: { __typename?: 'Discussion', locked: boolean, id: string, bodyText: string, number: number, closed: boolean, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, answer?: { __typename?: 'DiscussionComment', id: string, bodyText: string } | null } | null } | null> | null } } | null };
 
 export type IsDiscussionLockedQueryVariables = Exact<{
   owner: Scalars['String'];
@@ -41600,8 +41665,3 @@ export type GetRepoIdQueryVariables = Exact<{
 
 
 export type GetRepoIdQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', id: string } | null };
-
-export type WhoAmIQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type WhoAmIQuery = { __typename?: 'Query', viewer: { __typename?: 'User', login: string } };

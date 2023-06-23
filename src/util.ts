@@ -1,8 +1,7 @@
 import * as octokit from "@octokit/graphql-schema";
-import * as core from "@actions/core";
-import { ReactionContent } from "./generated/graphql";
+import { DiscussionCommentConnection, DiscussionCommentEdge, ReactionContent } from "./generated/graphql";
 
-export function daysSinceComment(comment: octokit.DiscussionCommentEdge): number {
+export function daysSinceComment(comment: DiscussionCommentEdge): number {
   const currentDate = new Date();
   const commentDate = new Date(comment.node?.updatedAt.toString());
   const diffInMs = currentDate.getTime() - commentDate.getTime();
@@ -10,44 +9,46 @@ export function daysSinceComment(comment: octokit.DiscussionCommentEdge): number
   return diffInDays;
 }
 
-export function isPositiveReaction(content: octokit.ReactionContent): boolean {
+export function isPositiveReaction(content: ReactionContent): boolean {
   return ((content === ReactionContent.ThumbsUp) || (content === ReactionContent.Heart) || (content === ReactionContent.Hooray) || (content === ReactionContent.Laugh) || (content === ReactionContent.Rocket));
 }
 
-export function isNegativeReaction(content: octokit.ReactionContent): boolean {
+export function isNegativeReaction(content: ReactionContent): boolean {
   return ((content === ReactionContent.ThumbsDown) || (content === ReactionContent.Confused));
 }
 
-export function containsPositiveReaction(comment: octokit.DiscussionCommentEdge): boolean {
+export function containsPositiveReaction(comment: DiscussionCommentEdge): boolean {
   return comment.node?.reactions.nodes?.some(reaction => {
     return isPositiveReaction(reaction?.content!);
   })!;
 }
 
-export function containsNegativeReaction(comment: octokit.DiscussionCommentEdge): boolean {
+export function containsNegativeReaction(comment: DiscussionCommentEdge): boolean {
   return comment.node?.reactions.nodes?.some(reaction => {
     return isNegativeReaction(reaction?.content!);
   })!;
 }
 
-export function hasReaction(comment: octokit.DiscussionCommentEdge): boolean {
+export function hasReaction(comment: DiscussionCommentEdge): boolean {
   return comment?.node?.reactions.nodes?.length !== 0;
 }
 
-export function containsText(comment: octokit.DiscussionCommentEdge, text: string): boolean {
+export function containsKeyword(comment: DiscussionCommentEdge, text: string): boolean {
   return comment?.node?.bodyText?.indexOf(text)! >= 0;
 }
 
-export function exceedsDaysUntilStale(comment: octokit.DiscussionCommentEdge, staleTimeDays: number): boolean {
+export function exceedsDaysUntilStale(comment: DiscussionCommentEdge, staleTimeDays: number): boolean {
   return (daysSinceComment(comment) >= staleTimeDays);
 }
 
-// TODO: Implement this function
-export function hasReply(comment: octokit.DiscussionCommentEdge, discussion: octokit.DiscussionEdge): boolean {
-  return true;
+export function hasReplies(comment: DiscussionCommentEdge): boolean {
+  return comment.node?.replies.edges?.some(reply => {
+    return (reply?.node?.bodyText.length !== 0);
+  })!;
 }
 
-// TODO: Implement this function
-export function hasInstructionsReply(comment: octokit.DiscussionCommentEdge, discussion: octokit.DiscussionEdge): boolean {
-  return true;
+export function hasNonInstructionsReply(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean {
+  return comments.node?.replies.edges?.some(comment => {
+    return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! < 0;
+  })!;
 }

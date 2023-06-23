@@ -1,9 +1,9 @@
-import { ApolloClient, HttpLink, InMemoryCache, NormalizedCacheObject } from "@apollo/client/core";
+import { ApolloClient, DefaultOptions, HttpLink, InMemoryCache, NormalizedCacheObject } from "@apollo/client/core";
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import fetch from 'cross-fetch';
 import { DiscussionConnection } from "@octokit/graphql-schema";
-import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, ReactionContent } from "./generated/graphql";
+import { GetDiscussionCountQuery, GetDiscussionCountQueryVariables, GetDiscussionCount, GetDiscussionDataQuery, GetDiscussionDataQueryVariables, GetDiscussionData, GetAnswerableDiscussionIdQuery, GetAnswerableDiscussionIdQueryVariables, GetAnswerableDiscussionId, GetLabelIdQuery, GetLabelId, CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolved, CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdated, AddDiscussionCommentMutation, AddDiscussionComment, MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswer, AddLabelToDiscussionMutation, AddLabelToDiscussion, UpdateDiscussionCommentMutation, UpdateDiscussionComment, GetDiscussionCommentCountQuery, GetDiscussionCommentCount, DiscussionCommentConnection, GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables, GetCommentMetaData, CloseDiscussionAsResolvedMutationVariables, CloseDiscussionAsOutdatedMutationVariables, AddDiscussionCommentMutationVariables, MarkDiscussionCommentAsAnswerMutationVariables, AddLabelToDiscussionMutationVariables, UpdateDiscussionCommentMutationVariables, GetDiscussionCommentCountQueryVariables, AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables, AddInstructionTextReply } from "./generated/graphql";
 
 export class GithubDiscussionClient {
   private _githubClient: ApolloClient<NormalizedCacheObject>;
@@ -20,7 +20,6 @@ export class GithubDiscussionClient {
     this.owner = github.context.repo.owner;
     this.repo = github.context.repo.repo;
     this.githubToken = githubToken;
-    this.initializeAttentionLabelId();
   }
 
   public get githubClient(): ApolloClient<NormalizedCacheObject> {
@@ -33,13 +32,23 @@ export class GithubDiscussionClient {
           },
           fetch
         }),
-        cache: new InMemoryCache(),
+        cache: new InMemoryCache({
+          typePolicies: {
+            Query: {
+              fields: {
+                repository: {
+                  merge: false
+                },
+              }
+            }
+          }
+        }),
       });
     }
     return this._githubClient;
   }
 
-  private async initializeAttentionLabelId() {
+  public async initializeAttentionLabelId() {
     if (!this.attentionLabelId) {
       const attentionLabel = core.getInput('attention-label', { required: false }) || 'attention';
       const result = await this.githubClient.query<GetLabelIdQuery>({
@@ -50,7 +59,7 @@ export class GithubDiscussionClient {
           labelName: attentionLabel
         }
       });
-    
+
       if (!result.data.repository?.label?.id) {
         throw new Error(`Couldn't find label ${attentionLabel} in repository. Please create this label and try again.`);
       }
@@ -59,7 +68,7 @@ export class GithubDiscussionClient {
     }
   }
 
-  public async getTotalDiscussionCount(categoryID: string) {
+  public async getTotalDiscussionCount(categoryID: string): Promise<number> {
     const resultCountObject = await this.githubClient.query<GetDiscussionCountQuery, GetDiscussionCountQueryVariables>({
       query: GetDiscussionCount,
       variables: {
@@ -68,33 +77,71 @@ export class GithubDiscussionClient {
         categoryId: categoryID
       },
     });
-  
+
     if (resultCountObject.error) {
-      throw new Error(`Error in reading discussions count for discussions category ${categoryID}`);
+      core.warning(`Error in reading discussions count for discussions category ${categoryID}: ${resultCountObject.error}`);
+      return 0;
     }
-  
-    const count = resultCountObject.data.repository?.discussions.totalCount;
-    core.debug(`Total discussion count for category ${categoryID}: ${count}`);
-    return count;
+
+    core.debug(`Total discussion count for Category ${categoryID}: ${resultCountObject.data.repository?.discussions.totalCount}`);
+    return resultCountObject.data.repository?.discussions.totalCount!;
+  }
+
+  public async getDiscussionCommentCount(discussionNum: number): Promise<number> {
+    const result = await this.githubClient.query<GetDiscussionCommentCountQuery, GetDiscussionCommentCountQueryVariables>({
+      query: GetDiscussionCommentCount,
+      variables: {
+        owner: this.owner,
+        name: this.repo,
+        num: discussionNum
+      },
+    });
+
+    if (result.error) {
+      core.warning(`Error retrieving comment count for discussion ${discussionNum}: ${result.error}`);
+      return 0;
+    }
+
+    return result.data.repository?.discussion?.comments.totalCount!;
+  }
+
+  public async getCommentsMetaData(discussionNum: number, commentCount: number): Promise<DiscussionCommentConnection> {
+    const result = await this.githubClient.query<GetCommentMetaDataQuery, GetCommentMetaDataQueryVariables>({
+      query: GetCommentMetaData,
+      variables: {
+        owner: this.owner,
+        name: this.repo,
+        discussionNumber: discussionNum,
+        commentCount: commentCount,
+      },
+    })
+
+    if (result.error) {
+      core.warning(`Error retrieving comment metadata for discussion ${discussionNum}: ${result.error}`);
+      return {} as DiscussionCommentConnection;
+    }
+
+    return result.data.repository?.discussion?.comments as DiscussionCommentConnection;
   }
 
   public async getDiscussionsMetaData(categoryID: string): Promise<DiscussionConnection> {
     const discussionsCount = await this.getTotalDiscussionCount(categoryID);
-    const discussions = await this.githubClient.query<GetDiscussionDataQuery, GetDiscussionDataQueryVariables>({
+    const result = await this.githubClient.query<GetDiscussionDataQuery, GetDiscussionDataQueryVariables>({
       query: GetDiscussionData,
       variables: {
         owner: this.owner,
         name: this.repo,
         categoryID: categoryID,
-        count: discussionsCount,
+        count: discussionsCount!,
       },
     })
-  
-    if (discussions.error) { 
-      throw new Error(`Error in retrieving discussions metadata for category ${categoryID}`); 
+
+    if (result.error) {
+      core.warning(`Error retrieving discussions metadata for category ${categoryID}: ${result.error}`);
+      return {} as DiscussionConnection;
     }
-  
-    return discussions.data.repository?.discussions as DiscussionConnection;
+
+    return result.data.repository?.discussions as DiscussionConnection;
   }
 
   public async getAnswerableDiscussionCategoryIDs(): Promise<any> {
@@ -105,113 +152,118 @@ export class GithubDiscussionClient {
         name: this.repo
       },
     });
-  
+
     if (!result.data.repository) {
       throw new Error(`Couldn't find repository ${this.repo} in owner ${this.owner}`);
     }
-  
+
     const answerableCategoryIDs: string[] = [];
     result.data.repository.discussionCategories.edges?.forEach(element => {
       if (element?.node?.isAnswerable == true) {
         answerableCategoryIDs.push(element?.node?.id);
       }
     })
-  
+
     if (!answerableCategoryIDs.length) {
-      core.info('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
+      throw new Error('There are no answerable discussion categories in this repository, this GitHub Action only works on answerable discussion categories.');
     }
-  
+
     return answerableCategoryIDs;
   }
 
   public async closeDiscussionAsResolved(discussionId: string) {
-    const result = await this.githubClient.mutate<CloseDiscussionAsResolvedMutation>({
+    const result = await this.githubClient.mutate<CloseDiscussionAsResolvedMutation, CloseDiscussionAsResolvedMutationVariables>({
       mutation: CloseDiscussionAsResolved,
       variables: {
         discussionId
       }
     });
-  
-    if (result.errors) {
-      throw new Error(`Error while attempting to close discussion ${discussionId} as resolved`);
-    }
 
-    return result.data?.closeDiscussion?.discussion?.id;
+    if (result.errors) {
+      throw new Error(`Error closing discussion ${discussionId} as resolved: ${result.errors}`);
+    }
   }
 
   public async closeDiscussionAsOutdated(discussionId: string) {
-    const result = await this.githubClient.mutate<CloseDiscussionAsOutdatedMutation>({
+    const result = await this.githubClient.mutate<CloseDiscussionAsOutdatedMutation, CloseDiscussionAsOutdatedMutationVariables>({
       mutation: CloseDiscussionAsOutdated,
       variables: {
         discussionId
       }
     });
-  
-    if (result.errors) {
-      throw new Error(`Error in closing outdated discussion ${discussionId}`);
-    }
 
-    return result.data?.closeDiscussion?.discussion?.id;
+    if (result.errors) {
+      throw new Error(`Error closing outdated discussion ${discussionId}: ${result.errors}`);
+    }
   }
 
   public async addCommentToDiscussion(discussionId: string, body: string) {
-    const result = await this.githubClient.mutate<AddDiscussionCommentMutation>({
+    const result = await this.githubClient.mutate<AddDiscussionCommentMutation, AddDiscussionCommentMutationVariables>({
       mutation: AddDiscussionComment,
       variables: {
-        discussionId,
         body,
+        discussionId
       },
     });
-  
+
     if (result.errors) {
-      throw new Error(`Mutation adding comment to discussion ${discussionId} failed with error`);
+      throw new Error(`Error adding comment to discussion ${discussionId}: ${result.errors}`);
+    }
+  }
+
+  public async addInstructionTextReply(body: string, discussionId: string, replyToId: string) {
+    const result = await this.githubClient.mutate<AddInstructionTextReplyMutation, AddInstructionTextReplyMutationVariables>({
+      mutation: AddInstructionTextReply,
+      variables: {
+        body,
+        discussionId,
+        replyToId
+      },
+    });
+
+    if (result.errors) {
+      throw new Error(`Error adding Instruction text to discussion ${discussionId}: ${result.errors}`);
     }
   }
 
   public async markDiscussionCommentAsAnswer(commentId: string) {
-    const result = await this.githubClient.mutate<MarkDiscussionCommentAsAnswerMutation>({
+    const result = await this.githubClient.mutate<MarkDiscussionCommentAsAnswerMutation, MarkDiscussionCommentAsAnswerMutationVariables>({
       mutation: MarkDiscussionCommentAsAnswer,
       variables: {
         commentId
       }
     });
-  
-    if (result.errors) {
-      throw new Error(`Mutation marking comment ${commentId} as answer failed with error`);
-    }
 
-    return result;
+    if (result.errors) {
+      throw new Error(`Error marking comment ${commentId} as answer: ${result.errors}`);
+    }
   }
 
   public async addAttentionLabelToDiscussion(discussionId: string) {
-    const result = await this.githubClient.mutate<AddLabelToDiscussionMutation>({
+    const result = await this.githubClient.mutate<AddLabelToDiscussionMutation, AddLabelToDiscussionMutationVariables>({
       mutation: AddLabelToDiscussion,
       variables: {
         labelableId: discussionId,
         labelIds: this.attentionLabelId,
       }
     });
-  
+
     if (result.errors) {
-      throw new Error(`Mutation adding label to discussion ${discussionId} failed with error`);
+      throw new Error(`Error adding label to discussion ${discussionId}: ${result.errors}`);
     }
-  
-    return result;
   }
 
   public async updateDiscussionComment(commentId: string, body: string) {
-    const result = await this.githubClient.mutate<UpdateDiscussionCommentMutation>({
+    const result = await this.githubClient.mutate<UpdateDiscussionCommentMutation, UpdateDiscussionCommentMutationVariables>({
       mutation: UpdateDiscussionComment,
       variables: {
         commentId,
         body
       }
     });
-  
+
     if (result.errors) {
-      throw new Error(`Error in updating discussion comment ${commentId}`);
+      throw new Error(`Error updating discussion comment ${commentId}: ${result.errors}`);
     }
-  
-    return result;
   }
 }
