@@ -1,5 +1,6 @@
 import * as octokit from '@octokit/graphql-schema';
 import * as core from '@actions/core';
+import * as github from '@actions/github';
 import { GithubDiscussionClient } from "./GithubDiscussionClient";
 import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasNonInstructionsReply, exceedsDaysUntilStale, hasReplies } from './util';
 import { DiscussionCommentEdge } from './generated/graphql';
@@ -20,6 +21,7 @@ const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required
 async function main() {
   const githubClient = new GithubDiscussionClient();
   await githubClient.initializeAttentionLabelId();
+  console.log(github.context.eventName)
   await processDiscussions(githubClient);
 }
 
