@@ -47,8 +47,8 @@ export function hasReplies(comment: DiscussionCommentEdge): boolean {
   })!;
 }
 
-export function hasInstructionsReply(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean {
+export function hasNonInstructionsReply(comments: DiscussionCommentEdge, INSTRUCTIONS_TEXT: string): boolean {
   return comments.node?.replies.edges?.some(comment => {
-    return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! >= 0;
+    return comment?.node?.bodyText?.indexOf(INSTRUCTIONS_TEXT)! < 0;
   })!;
 }

@@ -1,7 +1,7 @@
 import * as octokit from '@octokit/graphql-schema';
 import * as core from '@actions/core';
 import { GithubDiscussionClient } from "./GithubDiscussionClient";
-import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasInstructionsReply, exceedsDaysUntilStale, hasReplies } from './util';
+import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasNonInstructionsReply, exceedsDaysUntilStale, hasReplies } from './util';
 import { DiscussionCommentEdge } from './generated/graphql';
 
 const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: false })) || 7;
@@ -11,9 +11,9 @@ const CLOSE_ANSWERED_DISCUSSIONS = core.getBooleanInput('close-answered-discussi
 const CLOSE_FOR_STALENESS_RESPONSE_TEXT = core.getInput('stale-response-text', { required: false })
   || 'Closing the discussion for staleness. Please open a new discussion if you have further concerns.';
 const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required: false })
-  || 'Hello! A team member has marked the above comment as the likely answer to this discussion thread.'
-  + 'If you agree, please upvote that comment, or click on `Mark as answer`. I will automatically mark the comment as the answer next time I check.'
-  + 'If this answer doesn\'t help you, please downvote the answer instead and let us know why it wasn\'t helpful.'
+  || 'Hello! A team member has marked the above comment as the likely answer to this discussion thread. '
+  + 'If you agree, please upvote that comment, or click on `Mark as answer`. I will automatically mark the comment as the answer next time I check. '
+  + 'If this answer doesn\'t help you, please downvote the answer instead and let us know why it wasn\'t helpful. '
   + 'I will add a label to this discussion to gain attention from the team.';
 
 async function main() {
@@ -87,7 +87,7 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
           core.info(`Since this has no reply, adding instructions reply to comment ${commentId} in discussion ${discussionId}`);
           await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
         }
-        else if (!hasInstructionsReply(comment, INSTRUCTIONS_TEXT)) {
+        else if (hasNonInstructionsReply(comment, INSTRUCTIONS_TEXT)) {
           core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
           await githubClient.addAttentionLabelToDiscussion(discussionId);
         }
