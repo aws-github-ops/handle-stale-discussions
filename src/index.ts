@@ -77,23 +77,23 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
       else {
         if (containsNegativeReaction(comment)) {
           core.info(`Negative reaction received. Adding attention label to discussion ${discussionId} to receive further attention from a repository maintainer`);
-          await githubClient.addAttentionLabelToDiscussion(discussionId);
+          githubClient.addAttentionLabelToDiscussion(discussionId);
         }
         else if (containsPositiveReaction(comment)) {
           core.info(`Positive reaction received. Marking discussion ${discussionId} as answered, and editing answer to remove proposed answer keyword`);
-          await closeAndMarkAsAnswered(comment, discussionId, githubClient);
+          closeAndMarkAsAnswered(comment, discussionId, githubClient);
         }
         else if (!hasReplies(comment)) {
           core.info(`Since this has no reply, adding instructions reply to comment ${commentId} in discussion ${discussionId}`);
-          await githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
+          githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, discussionId, commentId!);
         }
         else if (hasNonInstructionsReply(comment, INSTRUCTIONS_TEXT)) {
           core.info(`Discussion ${discussionId} has a reply, but not an instructions reply. Adding attention label`);
-          await githubClient.addAttentionLabelToDiscussion(discussionId);
+          githubClient.addAttentionLabelToDiscussion(discussionId);
         }
         else if (exceedsDaysUntilStale(comment, DAYS_UNTIL_STALE)) {
           core.info(`No one has responded or provided a reaction, closing discussion ${discussionId} with a comment`);
-          await closeDiscussionForStaleness(discussionId, githubClient);
+          closeDiscussionForStaleness(discussionId, githubClient);
         }
       }
     };
@@ -103,18 +103,18 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
   }
 }
 
-async function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
-  await githubClient.addCommentToDiscussion(discussionId, CLOSE_FOR_STALENESS_RESPONSE_TEXT);
-  await githubClient.closeDiscussionAsOutdated(discussionId);
+function closeDiscussionForStaleness(discussionId: string, githubClient: GithubDiscussionClient) {
+  githubClient.addCommentToDiscussion(discussionId, CLOSE_FOR_STALENESS_RESPONSE_TEXT);
+  githubClient.closeDiscussionAsOutdated(discussionId);
 }
 
-async function closeAndMarkAsAnswered(comment: DiscussionCommentEdge, discussionId: string, githubClient: GithubDiscussionClient) {
+function closeAndMarkAsAnswered(comment: DiscussionCommentEdge, discussionId: string, githubClient: GithubDiscussionClient) {
   const bodyText = comment?.node?.bodyText!;
   const commentId = comment?.node?.id!;
   const updatedAnswerText = bodyText.replace(PROPOSED_ANSWER_KEYWORD, 'Answer: ');
-  await githubClient.updateDiscussionComment(commentId, updatedAnswerText);
-  await githubClient.markDiscussionCommentAsAnswer(commentId);
-  await githubClient.closeDiscussionAsResolved(discussionId);
+  githubClient.updateDiscussionComment(commentId, updatedAnswerText);
+  githubClient.markDiscussionCommentAsAnswer(commentId);
+  githubClient.closeDiscussionAsResolved(discussionId);
 }
 
 main();
