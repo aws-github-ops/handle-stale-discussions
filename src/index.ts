@@ -93,10 +93,11 @@ export async function processComments(discussion: octokit.DiscussionEdge, github
           githubClient.addAttentionLabelToDiscussion(discussionId);
         }
         else if (exceedsDaysUntilStale(comment, DAYS_UNTIL_STALE)) {
-          core.info(`No one has responded or provided a reaction, closing discussion ${discussionId} with a comment`);
           if (CLOSE_STALE_AS_ANSWERED) {
+            core.info(`No one has responded or provided a reaction, closing discussion ${discussionId} as answered`);
             closeAndMarkAsAnswered(comment, discussionId, githubClient);
           } else {
+            core.info(`No one has responded or provided a reaction, closing discussion ${discussionId} with a comment`);
             closeDiscussionForStaleness(discussionId, githubClient);
           }
         }
