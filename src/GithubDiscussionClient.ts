@@ -266,5 +266,4 @@ export class GithubDiscussionClient {
       throw new Error(`Error updating discussion comment ${commentId}: ${result.errors}`);
     }
   }
-
 }

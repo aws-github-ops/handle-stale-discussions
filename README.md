@@ -86,6 +86,12 @@ Default:
 
 > Closing the discussion for staleness. Please open a new discussion if you have further concerns.
 
+### close-stale-as-answered
+
+Close stale discussions as answered
+
+Default: `false`. Stale discussions are closed as outdated.
+
 ## Contributing 
 We welcome community contributions and pull requests. See [CONTRIBUTING.md](https://github.com/aws-github-ops/handle-stale-discussions/blob/main/CONTRIBUTING.md) for information on how to submit code.
 

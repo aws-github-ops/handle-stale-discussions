@@ -36,3 +36,7 @@ inputs:
     description: 'Keyword to use to indicate a proposed answer'
     required: false
     default: '@github-actions proposed-answer'
+  close-stale-as-answered:
+    description: 'Close stale discussions as answered'
+    required: false
+    default: false
