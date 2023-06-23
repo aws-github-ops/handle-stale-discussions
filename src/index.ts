@@ -21,8 +21,11 @@ const INSTRUCTIONS_TEXT = core.getInput('instructions-response-text', { required
 async function main() {
   const githubClient = new GithubDiscussionClient();
   await githubClient.initializeAttentionLabelId();
-  console.log(github.context.eventName)
-  await processDiscussions(githubClient);
+  if (github.context.eventName === 'discussion_comment') {
+    console.log(github.context.payload)
+  } else {
+    await processDiscussions(githubClient);
+  }
 }
 
 export async function processDiscussions(githubClient: GithubDiscussionClient) {
