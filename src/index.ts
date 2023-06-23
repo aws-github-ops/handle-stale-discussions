@@ -4,7 +4,7 @@ import { GithubDiscussionClient } from "./GithubDiscussionClient";
 import { containsKeyword, containsNegativeReaction, containsPositiveReaction, hasNonInstructionsReply, exceedsDaysUntilStale, hasReplies } from './util';
 import { DiscussionCommentEdge } from './generated/graphql';
 
-const DAYS_UNTIL_STALE = parseInt(core.getInput('days-until-stale', { required: false })) || 7;
+const DAYS_UNTIL_STALE = parseFloat(core.getInput('days-until-stale', { required: false })) || 7;
 const PROPOSED_ANSWER_KEYWORD = core.getInput('proposed-answer-keyword', { required: false }) || '@github-actions proposed-answer';
 const CLOSE_LOCKED_DISCUSSIONS = core.getBooleanInput('close-locked-discussions', { required: false });
 const CLOSE_ANSWERED_DISCUSSIONS = core.getBooleanInput('close-answered-discussions', { required: false });
