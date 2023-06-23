@@ -1,7 +1,9 @@
 name: HandleStaleDiscussions
 on:
   schedule:
-    - cron: '*/30 */1 * * *'
+    - cron: '0 */4 * * *'
+  discussion_comment:
+    types: [created]
 
 jobs:
   handle-stale-discussions:

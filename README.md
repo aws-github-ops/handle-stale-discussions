@@ -2,6 +2,8 @@
 
 This Github action checks the **answerable discussions** in your repository for an answer with the keyword `@github-actions proposed-answer`. If a positive reaction (thumbsup, laughing, rocket, heart, hooray) is received on the proposed answer, the discussion is marked as answered and closed as resolved. Otherwise if a negative reaction (thumbsdown, confused) is added or a reply is received, a label (`attention` by default) is added so the discussion can gain attention from the repository maintainers. If there is no reaction or response to a proposed answer after 7 days by default, the discussion is closed as outdated.
 
+If this workflow is configured to run when a discussion comment is created, then it will check if the newly created comment is a proposed answer. If it is, then an instructions response will be posted right away. This way, people can immediately know how to interact with the discussions bot. Please note, this is the only action that will occur on a new comment event trigger. Any other event which invokes this action will process all answerable discussions and comments in the repository.
+
 In addition to handling proposed answers, this action will automatically close any discussions that have a marked answer as resolved, and it will automatically close any locked discussions as outdated. Both of these functionalities can be disabled.
 
 ## Steps to enable this action in your repository
@@ -22,6 +24,9 @@ name: "Handle stale discussions"
 on:
   schedule:
     - cron: '0 */6 * * *'
+  discussion_comment:
+    types:
+      - created
 
 jobs:
   run-action:
