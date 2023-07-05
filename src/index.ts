@@ -50,6 +50,10 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
           core.warning(`Can not proceed checking discussion, discussionId is null!`);
           continue;
         }
+        else if (discussion?.node?.closed) {
+          core.debug(`Discussion ${discussionId} is closed, so no action needed.`);
+          continue;
+        }
         else if (discussion?.node?.locked && CLOSE_LOCKED_DISCUSSIONS) {
           core.info(`Discussion ${discussionId} is locked, closing it as resolved`);
           githubClient.closeDiscussionAsResolved(discussionId);
@@ -58,10 +62,6 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
         else if (discussion?.node?.answer != null && CLOSE_ANSWERED_DISCUSSIONS) {
           core.info(`Discussion ${discussionId} is already answered, so closing it as resolved.`);
           githubClient.closeDiscussionAsResolved(discussionId);
-          continue;
-        }
-        else if (discussion?.node?.closed) {
-          core.debug(`Discussion ${discussionId} is closed, so no action needed.`);
           continue;
         }
         else {
