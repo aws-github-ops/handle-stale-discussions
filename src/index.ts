@@ -10,7 +10,7 @@ const GITHUB_BOT = core.getInput('github-bot', { required: false}) || 'github-ac
 const DAYS_UNTIL_STALE = parseFloat(core.getInput('days-until-stale', { required: false })) || 7;
 const PROPOSED_ANSWER_KEYWORD = core.getInput('proposed-answer-keyword', { required: false }) || '@github-actions proposed-answer';
 const closeLockedDiscussionsInput = core.getInput('close-locked-discussions', { required: false });
-const CLOSE_LOCKED_DISCUSSIONS = closeLockedDiscussionsInput.toLowerCase() === 'true' ? true : false;
+const CLOSE_LOCKED_DISCUSSIONS = closeLockedDiscussionsInput.toLowerCase() === 'false' ? false : true;
 const closeAnsweredDiscussionsInput = core.getInput('close-answered-discussions', { required: false });
 const CLOSE_ANSWERED_DISCUSSIONS = closeAnsweredDiscussionsInput.toLowerCase() === 'false' ? false : true;
 const closeStaleAsAnsweredInput = core.getInput('close-stale-as-answered', { required: false });
