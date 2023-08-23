@@ -78,13 +78,13 @@ The default number of days is 7.
 
 Automatically close answered discussions as resolved
 
-This is false by default
+This is enabled by default
 
 ### close-locked-discussions
 
 Automatically close locked discussions as outdated
 
-This is false by default
+This is enabled by default
 
 ### instructions-response-text
 
