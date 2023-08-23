@@ -12,7 +12,7 @@ const PROPOSED_ANSWER_KEYWORD = core.getInput('proposed-answer-keyword', { requi
 const closeLockedDiscussionsInput = core.getInput('close-locked-discussions', { required: false });
 const CLOSE_LOCKED_DISCUSSIONS = closeLockedDiscussionsInput.toLowerCase() === 'true' ? true : false;
 const closeAnsweredDiscussionsInput = core.getInput('close-answered-discussions', { required: false });
-const CLOSE_ANSWERED_DISCUSSIONS = closeAnsweredDiscussionsInput.toLowerCase() === 'true' ? true : false;
+const CLOSE_ANSWERED_DISCUSSIONS = closeAnsweredDiscussionsInput.toLowerCase() === 'false' ? false : true;
 const closeStaleAsAnsweredInput = core.getInput('close-stale-as-answered', { required: false });
 const CLOSE_STALE_AS_ANSWERED = closeStaleAsAnsweredInput.toLowerCase() === 'false' ? false : true;
 const CLOSE_FOR_STALENESS_RESPONSE_TEXT = core.getInput('stale-response-text', { required: false })
