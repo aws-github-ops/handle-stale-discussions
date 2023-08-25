@@ -31,10 +31,8 @@ async function main() {
       core.info('Comment created with proposed answer keyword. Adding instuctions reply to comment');
       githubClient.addInstructionTextReply(INSTRUCTIONS_TEXT, github.context.payload.discussion!.node_id, github.context.payload.comment!.node_id);
     } else {
-      core.info('Comment created without proposed answer keyword. No action needed');
-    }
-  } else {
     await processDiscussions(githubClient);
+    }
   }
 }
 
