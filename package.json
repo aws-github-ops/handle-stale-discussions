@@ -34,7 +34,7 @@
     "@graphql-codegen/typescript-operations": "^4.0.1",
     "@graphql-codegen/typescript-resolvers": "4.0.1",
     "@jest/globals": "^29.5.0",
-    "@octokit/graphql-schema": "^14.4.0",
+    "@octokit/graphql-schema": "^14.38.0",
     "@types/jest": "^29.5.3",
     "@vercel/ncc": "^0.36.1",
     "jest": "^29.6.1",
