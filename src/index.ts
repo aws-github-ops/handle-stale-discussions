@@ -64,11 +64,6 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
           core.warning(`Current discussion ID is NULL. Cannot proceed!!`);
           continue;
         }
-        //disabling the reopening of closed discussions
-        /*else if (discussion?.node?.closed) {
-          core.info(`Reopening closed discussion: ${discussionId}`);
-          reopenClosedDiscussion(discussionId, githubClient);
-        }*/
         else if (discussion?.node?.locked && CLOSE_LOCKED_DISCUSSIONS) {
           core.info(`Discussion ${discussionId} is locked, keeping it open to make it searchable`);
           //githubClient.closeDiscussionAsResolved(discussionId);
