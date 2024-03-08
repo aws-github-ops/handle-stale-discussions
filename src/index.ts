@@ -64,10 +64,6 @@ export async function processDiscussions(githubClient: GithubDiscussionClient) {
           core.warning(`Current discussion ID is NULL. Cannot proceed!!`);
           continue;
         }
-        else if (discussion?.node?.closed) {
-          core.info(`Reopening closed discussion: ${discussionId}`);
-          reopenClosedDiscussion(discussionId, githubClient);
-        }
         else if (discussion?.node?.locked && CLOSE_LOCKED_DISCUSSIONS) {
           core.info(`Discussion ${discussionId} is locked, keeping it open to make it searchable`);
           //githubClient.closeDiscussionAsResolved(discussionId);
@@ -171,11 +167,6 @@ function markDiscussionCommentAsAnswer(comment: DiscussionCommentEdge, discussio
   const updatedAnswerText = bodyText.replace(PROPOSED_ANSWER_KEYWORD, 'Answer: ');
   githubClient.updateDiscussionComment(commentId, updatedAnswerText);
   githubClient.markDiscussionCommentAsAnswer(commentId);
-}
-
-function reopenClosedDiscussion(discussionId: string, githubClient: GithubDiscussionClient) {
-  githubClient.addCommentToDiscussion(discussionId, OPEN_DISCUSSION_INSTRUCTION_TEXT);
-  githubClient.reopenDiscussion(discussionId);
 }
 
 main();
