@@ -169,9 +169,4 @@ function markDiscussionCommentAsAnswer(comment: DiscussionCommentEdge, discussio
   githubClient.markDiscussionCommentAsAnswer(commentId);
 }
 
-function reopenClosedDiscussion(discussionId: string, githubClient: GithubDiscussionClient) {
-  githubClient.addCommentToDiscussion(discussionId, OPEN_DISCUSSION_INSTRUCTION_TEXT);
-  githubClient.reopenDiscussion(discussionId);
-}
-
 main();
