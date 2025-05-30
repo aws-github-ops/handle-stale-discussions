@@ -1,6 +1,6 @@
 {
   "name": "handle-stale-discussions",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "GitHub action to help manage discussions in GitHub repositories",
   "main": "dist/index.js",
   "scripts": {
